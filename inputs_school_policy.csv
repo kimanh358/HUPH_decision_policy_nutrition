@@ -1,5 +1,5 @@
-variable,lower ,median,upper,distribution,label
-number_of_years,10,,10,const,Number of years for policy simulation
+variable,lower,median,upper,distribution,label
+number_of_years,7,,7,const,Number of years for policy simulation
 discount_rate,5,,8,posnorm,Discounting factor
 CV_value,0.1,,0.4,tnorm_0_1,Coefficient of variation for our school policy intervention (%)
 ,,,,,

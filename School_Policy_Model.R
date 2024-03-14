@@ -53,7 +53,6 @@ school_policy_function <- function(x, varnames){
   return(list(NPV_interv_policy = NPV_interv_policy, 
               NPV_no_policy = NPV_no_interv,
               decision = NPV_interv_policy - NPV_no_interv,
-              decision_policy = NPV_interv_policy - NPV_no_interv,
               Cashflow_policy = policy_intervention_result, 
               Cashflow_no_policy = no_intervention_result))
 }
@@ -61,7 +60,7 @@ school_policy_function <- function(x, varnames){
 
 # Run the model 
 
-set.seed(1234) 
+set.seed(84) 
 
 garden_simulation_results <- mcSimulation(
   estimate = estimate_read_csv("inputs_school_policy.csv"),
