@@ -1,0 +1,10 @@
+variable,lower ,median,upper,distribution,label
+number_of_years,10,,10,const,Number of years for policy simulation
+discount_rate,5,,8,posnorm,Discounting factor
+CV_value,0.1,,0.4,tnorm_0_1,Coefficient of variation for our school policy intervention (%)
+,,,,,
+total_benefit_no_policy,10,,400,posnorm,annual benefits (million VND)
+total_benefit_policy1,400,,6000,posnorm,annual benefits (million VND)
+,,,,,
+total_costs_no_policy,4,,90,posnorm,annual costs (million VND)
+total_costs_policy_1,5,,1000,posnorm,annual costs (million VND)
