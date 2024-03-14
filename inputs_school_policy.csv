@@ -8,7 +8,7 @@ disease_diagnosis,0.05,,2,posnorm,annual diagnosis per student Per year (milion 
 n_disease_diagnosis,0.01,,3,posnorm,times of doctor visit per student Per year 
 n_student,1,,200,posnorm,the number of student Per school
 disease_treatment,0,,10,norm,
-n_disease_treatment,1,,200,posnorm,
+n_disease_treatment,0.01,,3,posnorm,number of treatments per student
 total_costs_no_policy,4,,90,posnorm,annual costs (million VND)
 ,,,,,
 training_costs_foodsafety_1st_year,5,,10,posnorm,
@@ -18,7 +18,7 @@ training_costs_nutrition_annual,0.01,,15,posnorm,
 training_costs_physical_activity_1st_year,5,,10,posnorm,
 training_costs_physical_activity_annual,0.01,,10,posnorm,
 change_menu_costs_annual,5,,12,posnorm,
-mornitoring_cost,0.01,,5,posnorm,
+monitoring_cost,0.01,,5,posnorm,
 ,,,,,
 unhealthy_schoolgate_food_risk,0.01,,0.5,tnorm_0_1,
 impact_risk_unhealthy_schoolgate_food,0.01,,0.2,tnorm_0_1,
