@@ -1,10 +1,24 @@
 variable,lower,median,upper,distribution,label
-number_of_years,7,,7,const,Number of years for policy simulation
-discount_rate,5,,8,posnorm,Discounting factor
+number_of_years,5,,5,const,Number of years for policy simulation
+discount_rate,5,,12,posnorm,Discounting factor (lãi suất chiết khấu)
 CV_value,0.1,,0.4,tnorm_0_1,Coefficient of variation for our school policy intervention (%)
 ,,,,,
 total_benefit_no_policy,10,,400,posnorm,annual benefits (million VND)
-total_benefit_policy1,400,,6000,posnorm,annual benefits (million VND)
-,,,,,
+disease_diagnosis,0.05,,2,posnorm,annual diagnosis per student Per year (milion VND)
+n_disease_diagnosis,0.01,,3,posnorm,times of doctor visit per student Per year 
+n_student,1,,200,posnorm,the number of student Per school
+disease_treatment,0,,10,norm,
+n_disease_treatment,1,,200,posnorm,
 total_costs_no_policy,4,,90,posnorm,annual costs (million VND)
-total_costs_policy_1,5,,1000,posnorm,annual costs (million VND)
+,,,,,
+training_costs_foodsafety_1st_year,5,,10,posnorm,
+training_costs_foodsafety_annual,0.01,,7,posnorm,
+training_costs_nutrition_1st_year,5,,15,posnorm,
+training_costs_nutrition_annual,0.01,,15,posnorm,
+training_costs_physical_activity_1st_year,5,,10,posnorm,
+training_costs_physical_activity_annual,0.01,,10,posnorm,
+change_menu_costs_annual,5,,12,posnorm,
+mornitoring_cost,0.01,,5,posnorm,
+,,,,,
+unhealthy_schoolgate_food_risk,0.01,,0.5,tnorm_0_1,
+impact_risk_unhealthy_schoolgate_food,0.01,,0.2,tnorm_0_1,

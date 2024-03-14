@@ -16,22 +16,37 @@ make_variables(decisionSupport::estimate_read_csv(paste("inputs_school_policy.cs
 school_policy_function <- function(x, varnames){
   
   # Costs####
+  trainingcost <-vv(training_costs_foodsafety_annual,var_CV=CV_value,n = number_of_years)
+  trainingcost[1]<-training_costs_foodsafety_1st_year
+  training_costs_nutrition_1st_year
+  training_costs_nutrition_annual
+  training_costs_physical_activity_1st_year
+  training_costs_physical_activity_annual
+  change_menu_costs_annual
+  mornitoring_cost
   
   
   # Risks ####
-  
+  unhealthy_schoolgate_food_risk
+  unhealthy_risk=chance_event(unhealthy_schoolgate_food_risk)
   # These are 'ex-ante' risks, or risks understood when making a decision
   
   ####
   
   # Add up all benefits and risks ####
-  
+  total_benefit_no_policy
+  disease_diagnosis
+  n_disease_diagnosis
+  disease_diagnosis_benefit<-vv(disease_diagnosis,var_CV=CV_value,n = number_of_years)*
+    n_disease_diagnosis*n_student
+  disease_treatment
+  n_disease_treatment
   
    
   no_intervention_result <- total_benefit_no_policy - total_costs_no_policy
   
   # Final result of the costs and benefits policy
-  policy_intervention_result <- (total_benefit_policy1) - total_costs_policy_1  # etc. 
+  policy_intervention_result <- (disease_diagnosis_benefit) - trainingcost  # etc. 
     
   # calculate the Net Present Value (NPV) with with the specified discount rate
 
