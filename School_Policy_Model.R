@@ -166,18 +166,10 @@ policy_1st_year_cost <- training_costs_foodsafety_1st_year +
      (n_reduce_disease_treatment *#how many fewer treatment  per student  year with policy  #
         n_student)) #the number of student in school#
   
-  unhealthy_risk = chance_event(unhealthy_schoolgate_food_risk)
-  
-  if (unhealthy_risk == 1) { 
-    # reduce benefit because of the unhealthy school gate food
-    policy_benefit <- vv(annual_benefit_policy,
-                                var_CV = CV_value,
-                                n = number_of_years) * (1-unhealthy_schoolgate_food_risk)
-  } else {
-   # or keep the full benefit 
+  # or keep the full benefit 
     policy_benefit <-  vv(annual_benefit_policy,
                         var_CV = CV_value,
-                        n = number_of_years) }
+                        n = number_of_years) 
                         
   # from the input table for now
   no_policy_result <- vv(total_benefit_no_policy - total_costs_no_policy, 
@@ -243,7 +235,7 @@ mcSimulation_table <- data.frame(policy_simulation_results$x,
 EVPI <- multi_EVPI(mc = mcSimulation_table,
                    first_out_var = "NPV_interv_policy")
 
-plot_evpi(EVPI, decision_vars = "NPV_interv_policy") 
+plot_evpi(EVPI, decision_vars = "decision") 
 
 plot_cashflow(policy_simulation_results,cashflow_var_name="Cashflow_policy")
 

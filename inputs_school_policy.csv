@@ -5,9 +5,9 @@ CV_value,0.1,,0.4,tnorm_0_1,Coefficient of variation for our school policy inter
 n_student,1000,,2000,posnorm,number of student in school
 ,,,,,
 total_benefit_no_policy,10,,400,posnorm,annual benefits (million VND)
-disease_diagnosis,0,,10,norm,
+disease_diagnosis,0,,10,norm, spending for a student disease diagnosis visit to the doctor  (milion VND)
 n_reduce_disease_diagnosis,0.01,,3,posnorm,how many fewer dígnosis per student year with policy
-disease_treatment,0,,10,norm,
+disease_treatment,0,,10,norm, spending for a student disease treatment  (mililion VND)
 n_reduce_disease_treatment,0.01,,2,posnorm,
 total_costs_no_policy,4,,90,posnorm,annual costs (million VND)
 ,,,,,
