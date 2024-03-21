@@ -3,11 +3,11 @@
 # make variables for testing our model (only for construction)
 library(decisionSupport)
 
-make_variables <- function(est,n=1)
+make_variables <- function(est,n=1) #take one time #  
 {x <- decisionSupport::random(rho=est,n=n)
 for(i in colnames(x))assign(i, as.numeric(x[1,i]),envir=.GlobalEnv)}
 
-
+#Just for one time# 
 make_variables(decisionSupport::estimate_read_csv(paste("inputs_school_policy.csv",sep="")))
 
 
@@ -24,6 +24,7 @@ annual_policy_costs <- training_costs_foodsafety_annual +
     monitoring_cost # for the sugar and salt
 
   # establishing the policy at school
+# Establishment cost in 1st year#
 policy_1st_year_cost <- training_costs_foodsafety_1st_year + 
   training_costs_nutrition_1st_year + 
   training_costs_physical_activity_1st_year
@@ -33,29 +34,38 @@ policy_1st_year_cost <- training_costs_foodsafety_1st_year +
                     n = number_of_years)
   
   # add establishment to first year
-  policy_cost[1] <- policy_1st_year_cost + policy_cost[1]
+  #chon 1 gia tri trong 5 nam do#
+  policy_cost[1] <- policy_1st_year_cost + policy_cost[1] 
 
   # Risks ####
-  unhealthy_risk = chance_event(unhealthy_schoolgate_food_risk)
+  
   
   # Add up all benefits and risks ####
-
-  annual_benefit_policy <-  (disease_diagnosis * (n_disease_diagnosis * n_student)) +  # paying for doctor visits
-  (disease_treatment * (n_disease_treatment * n_student)) # paying for treatement (hospital or home)
- 
+  #reduce cost of paying for doctor visits#
+  #think about it lately#
+  annual_benefit_policy <-  (disease_diagnosis * #cost of a student getting diagnosis #
+                               (n_reduce_disease_diagnosis * #how many fewer dígnosis per student year with policy  #
+                                  n_student)) +  # the number of student in school# 
+    # reduce cost of paying for treatement (hospital or home)
+    (disease_treatment * #cost of a student getting treatment #
+     (n_reduce_disease_treatment *#how many fewer treatment  per student  year with policy  #
+        n_student)) #the number of student in school#
+  
+  unhealthy_risk = chance_event(unhealthy_schoolgate_food_risk)
+  
   if (unhealthy_risk == 1) { 
     # reduce benefit because of the unhealthy school gate food
-  policy_benefit <- vv(annual_benefit_policy,
+    policy_benefit <- vv(annual_benefit_policy,
                                 var_CV = CV_value,
-                                n = number_of_years) * 1-unhealthy_schoolgate_food_risk
+                                n = number_of_years) * (1-unhealthy_schoolgate_food_risk)
   } else {
    # or keep the full benefit 
-   policy_benefit <- vv(annual_benefit_policy,
+    policy_benefit <-  vv(annual_benefit_policy,
                         var_CV = CV_value,
                         n = number_of_years) }
                         
   # from the input table for now
-  no_intervention_result <- vv(total_benefit_no_policy - total_costs_no_policy, 
+  no_policy_result <- vv(total_benefit_no_policy - total_costs_no_policy, 
                                var_CV = CV_value,
                                n = number_of_years)
   
@@ -63,15 +73,15 @@ policy_1st_year_cost <- training_costs_foodsafety_1st_year +
   policy_intervention_result <- policy_benefit - policy_cost  # etc. 
     
   # calculate the Net Present Value (NPV) with with the specified discount rate
-
+#NPV with policy#
   NPV_interv_policy <-
     discount(x = policy_intervention_result, 
              discount_rate = discount_rate, 
              calculate_NPV = TRUE)
   
-  # NPV no intervention ####
-  NPV_no_interv <-
-    discount(x = no_intervention_result, 
+  # NPV no policy ####
+  NPV_no_policy <-
+    discount(x = no_policy_result, 
              discount_rate = discount_rate, 
              calculate_NPV = TRUE)
   
@@ -80,10 +90,10 @@ policy_1st_year_cost <- training_costs_foodsafety_1st_year +
   # Beware, if we do not name our outputs (left-hand side of the equal sign) in the return section, 
   # the variables will be called output_1, _2, etc.
   return(list(NPV_interv_policy = NPV_interv_policy, 
-              NPV_no_interv = NPV_no_interv,
-              decision = NPV_interv_policy - NPV_no_interv,
+              NPV_no_policy = NPV_no_policy,
+              decision = NPV_interv_policy - NPV_no_policy,
               Cashflow_policy = policy_intervention_result, 
-              Cashflow_no_policy = no_intervention_result))
+              Cashflow_no_policy = no_policy_result))
 }
 
 
@@ -101,17 +111,17 @@ policy_simulation_results <- mcSimulation(
 # Plot comparative results
 
 plot_distributions(mcSimulation_object = policy_simulation_results, 
-                   vars = c("NPV_interv_policy","NPV_no_interv"),
+                   vars = c("NPV_interv_policy","NPV_no_policy"),
                    method = 'hist_simple_overlay', 
                    base_size = 7, 
                    x_axis_name = "Comparative NPV outcomes (million VND)")
 
 plot_distributions(mcSimulation_object = policy_simulation_results, 
-                   vars = c("decision"), # NPV_interv - NPV_no_interv
+                   vars = c("decision"), # NPV_interv - NPV_no_policy
                    method = 'hist_simple_overlay', 
                    base_size = 7,  
                    x_axis_name = "Expected gains with school policy (policy - no policy)")
-
+#create 1 table#
 mcSimulation_table <- data.frame(policy_simulation_results$x,
                                  policy_simulation_results$y[1:3])
 
@@ -120,5 +130,6 @@ EVPI <- multi_EVPI(mc = mcSimulation_table,
 
 plot_evpi(EVPI, decision_vars = "NPV_interv_policy") 
 
+plot_cashflow(policy_simulation_results,cashflow_var_name="Cashflow_policy")
 
 
