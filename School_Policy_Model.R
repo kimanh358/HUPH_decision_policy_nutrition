@@ -81,13 +81,13 @@ school_policy_function <- function(x, varnames){
   #risk to children access and consume unhealthy food
   #nguy co tu tre em 
   bad_gate_food <- chance_event(unhealthy_school_gate_foods)
-  bad_canteen_food <- chance_event(canteen_selling_unhealthy_foods)
+  bad_canteen_food <- chance_event(unhealthy_canteen_foods)
   if (bad_gate_food == 1 | bad_canteen_food==1) { 
     # reduce access and consume healthy food
-    children_access_healthy_food <- children_access_healthy_food * 
-      (1-max(canteen_selling_unhealthy_foods,unhealthy_school_gate_foods))
+    children_access_healthy_food <- children_access_healthy_food *  #
+      (1-max(unhealthy_canteen_foods,unhealthy_school_gate_foods))
     children_consume_healthy_food <- children_consume_healthy_food * 
-      (1-max(canteen_selling_unhealthy_foods,unhealthy_school_gate_foods))
+      (1-max(unhealthy_canteen_foods,unhealthy_school_gate_foods))
   } else {
     # access and consume healthy food
     children_access_healthy_food
@@ -134,6 +134,7 @@ nutrition_status_bmi_low <- nutrition_status_bmi_low *
   nutrition_status_bmi_low
 }
   
+
 
   # Costs####
   # annual costs for the policy 
