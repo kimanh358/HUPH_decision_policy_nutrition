@@ -18,11 +18,12 @@ training_costs_nutrition_annual,0.01,,15,posnorm,spending for annual nutrition t
 training_costs_physical_activity_1st_year,5,,10,posnorm,spending for physical activity training in 1st year (million VND)
 training_costs_physical_activity_annual,0.01,,10,posnorm,spending for annual physical activity training (million VND)
 change_menu_costs_annual,5,,12,posnorm,spending for annual menu change (million VND)
-monitoring_canteen_cost,0.01,,5,posnorm,spending for mornitoring canteen (milicon VND)
+monitoring_canteen_cost,0.01,,5,posnorm,spending for monitoring canteen (milicon VND)
 ,,,,,
 unhealthy_schoolgate_food_risk,0.01,,0.5,tnorm_0_1,risk of unhealthy schoolgate food
 impact_risk_unhealthy_schoolgate_food,0.01,,0.2,tnorm_0_1,
 practice_school_management_board,0.01,,0.2,tnorm_0_1,"Practices of School management board about school meal ( ex: chosing lesson, food supplier...)"
+unhealthy_canteen_foods,0.01,,0.2,tnorm_0_1,"Chance of unhealthy canteen foods"
 staff_knowledge_food_safety,0.01,,0.2,tnorm_0_1,Staff knowledge about food safety
 staff_knowledge_nutrition,0.01,,0.2,tnorm_0_1,Staff knowledge about nutrition
 health_lessons_class,0.01,,0.2,tnorm_0_1,Health lessons in class 
