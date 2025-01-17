@@ -7,7 +7,7 @@ make_variables <- function(est,n=1) #take one time #
 {x <- decisionSupport::random(rho=est,n=n)
 for(i in colnames(x))assign(i, as.numeric(x[1,i]),envir=.GlobalEnv)}
 
-#Just for one time# 
+#Just one model run# 
 make_variables(decisionSupport::estimate_read_csv(paste("inputs_school_policy.csv",sep="")))
 
 
@@ -33,7 +33,7 @@ school_policy_function <- function(x, varnames){
    meal_nutrition_practices_staff <- meal_nutrition_practices_staff* (1-practice_school_management_board)
  } 
      
-  #parent attitude practice abt nutrition and foodsafety at school
+  #parent attitude practice about nutrition and food safety at school
   #kien thuc thuc hanh cua bo me ve dinh duong va attp tai truong
   positive_parents <- chance_event(parents_monitor_school_meal_practices)
   if (positive_parents == 1) {  #neu cha me giam sat dung  
