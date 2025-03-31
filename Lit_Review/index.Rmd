@@ -70,7 +70,7 @@ search_terms <- list(
   ),
   
   school_meal_RDA_compliance = c(
-    "rda compliance", "meets rda", "nutrient requirements", 
+    "rda", "rda compliance", "meets rda", "nutrient requirements", 
     "compliant with guidelines", "meal meets dietary standards", 
     "nutritional adequacy", "macronutrient targets", "nutrition density", 
     "dietary diversity", "school meal adequacy"
