@@ -1,0 +1,204 @@
+---
+title: "Conceptual Model Validation"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+bibliography: bib/HUPH_Kim Anh.bib
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(stringr)
+library(bibtex)
+library(dplyr)
+```
+
+![Full conceptual Model](figures/Framework.png)
+
+Here we outline a workflow with algorithmic support in R for comparing our conceptual model to the existing literature corpus, the government policy documents and a qualitative assessment.
+
+We apply this to systematically evaluate whether each component of our conceptual model is supported, refuted, missing from the literature and/or policy documents. We then synthesize this into a shorter, more justified and adjusted version of the model.
+
+We build a semi-automated evidence synthesis framework that treats our documents like a team of virtual reviewers. The core idea is to define the core elements from your simple conceptual model (e.g. canteen regulation, staff training, food safety, nutrition education, etc.), search and summarize what each document says about each element, score the strength and direction of evidence per element, compare and synthesize to get a high-level view of agreement, gaps, and inconsistencies.
+
+## Load Data
+
+```{r load-texts}
+# Load .txt files
+col_text <- tolower(readLines("text_Review/Text_Lit_Review.txt"))
+gov_text <- tolower(readLines("text_Review/Text_Policy_Review_Eng.txt"))
+
+bib <- read.bib("bib/HUPH_Kim Anh.bib")
+# Load BibTeX entries as plain text
+
+bib_texts <- tolower(sapply(bib, function(x) paste(x$title, x$abstract, collapse = " ")))
+
+```
+
+## Define Search Terms
+
+```{r search-terms}
+search_terms <- list(
+  training_nutrition_staff = c(
+    "nutrition training", "teacher training", "staff training nutrition", 
+    "capacity building", "professional development", "nutrition knowledge", 
+    "staff development", "health educator", "nutrition education workshop", 
+    "school staff nutrition training", "training sessions for teachers"
+  ),
+  
+  training_food_safety_staff = c(
+    "food safety training", "hygiene training", "sanitary practices", 
+    "food handler certification", "safe food handling", 
+    "kitchen staff training", "sanitation workshop", 
+    "training in safe food practices"
+  ),
+  
+  canteen_nutrition_standards = c(
+    "nutrition standard", "menu standard", "rda", "recommended dietary allowance", 
+    "dietary guideline", "meal plan regulation", "nutrient-based standard", 
+    "balanced menu", "nutrition benchmark", "school food policy", 
+    "menu planning guideline"
+  ),
+  
+  canteen_restriction_salt_sugar = c(
+    "sugar restriction", "salt limits", "junk food ban", 
+    "limit added sugar", "low sodium meals", "snack regulation", 
+    "sugar-sweetened beverage", "reduce sugary drinks", 
+    "high salt foods", "confectionery restriction", 
+    "school vending policy"
+  ),
+  
+  school_meal_RDA_compliance = c(
+    "rda compliance", "meets rda", "nutrient requirements", 
+    "compliant with guidelines", "meal meets dietary standards", 
+    "nutritional adequacy", "macronutrient targets", "nutrition density", 
+    "dietary diversity", "school meal adequacy"
+  ),
+  
+  food_safety_practices = c(
+    "food safety", "sanitation", "kitchen hygiene", 
+    "foodborne illness prevention", "safe meal preparation", 
+    "kitchen cleanliness", "cross-contamination", "safe storage", 
+    "school food inspections", "health inspections"
+  ),
+  
+  nutrition_practices = c(
+    "nutrition behavior", "healthy eating", "dietary habits", 
+    "child nutrition practices", "eating behavior", "school food culture", 
+    "nutritious meal habits", "healthy food choices", 
+    "student eating patterns", "nutrition habits"
+  ),
+  
+  parent_monitoring = c(
+    "parent involvement", "parental oversight", "family engagement", 
+    "guardian participation", "parent-school collaboration", 
+    "home food environment", "family influence", "parent nutrition knowledge"
+  ),
+  
+  unhealthy_gate_foods = c(
+    "street food", "off-campus", "external food", "gate vendors", 
+    "food outside school", "snack carts", "mobile vendors", 
+    "non-canteen food", "junk food near school", 
+    "external food environment", "gate-side sellers"
+  ),
+  
+  canteen_sells_unhealthy = c(
+    "unhealthy food at canteen", "junk food sold at school", 
+    "sugar drinks sold", "canteen menu audit", "school food audit", 
+    "low-quality school meals", "fried food in canteen", 
+    "sweetened beverages", "non-compliant school food"
+  ),
+  
+  children_consume_healthy = c(
+    "fruit consumption", "vegetable intake", "healthy eating", 
+    "children eat healthy", "nutritious food consumption", 
+    "whole foods", "low sugar diet", "balanced intake", 
+    "diet quality", "diverse meal consumption"
+  ),
+  
+  teacher_overwork = c(
+    "teacher burden", "staff overwork", "workload stress", 
+    "curricular overload", "teacher capacity", 
+    "overburdened teachers", "staff exhaustion", "teaching constraints"
+  ),
+  
+  peer_influence = c(
+    "peer pressure", "friend influence", "social norms", 
+    "peer modeling", "student peer effect", 
+    "classmate eating habits", "friend food influence"
+  ),
+  
+  adverts_near_school = c(
+    "advertising", "ads near school", "junk food marketing", 
+    "commercial marketing to children", "food advertising", 
+    "point of sale marketing", "billboards", "branded food promotion", 
+    "media food influence"
+  ),
+  
+  health_lessons = c(
+    "health education", "nutrition class", "health curriculum", 
+    "classroom nutrition instruction", "food education", 
+    "school-based health lesson", "diet education", 
+    "curriculum-integrated nutrition", "classroom wellness lesson"
+  ),
+  
+  resistance_staff = c(
+    "staff resistance", "teacher reluctance", "implementation barrier", 
+    "staff pushback", "lack of buy-in", "teacher discomfort", 
+    "training refusal", "opposition to nutrition policy"
+  ),
+  
+  resistance_child = c(
+    "student resistance", "child refusal", "child preference", 
+    "food rejection", "student pushback", "children refuse meals", 
+    "unpopular school food", "low student participation"
+  ),
+  
+  budget_costs = c(
+    "budget", "affordability", "costs", "school finance", 
+    "financial constraints", "meal funding", "budget limitation", 
+    "fiscal sustainability", "economic barrier", "cost-effectiveness"
+  ),
+  
+  NPV_health_impact = c(
+    "cost-effectiveness", "net benefit", "npv", "economic impact", 
+    "long-term benefit", "return on investment", "economic evaluation", 
+    "social benefit", "benefit-cost ratio", "value for money"
+  )
+)
+
+
+```
+
+## Check Text Hits
+
+```{r check-function}
+check_hits <- function(search_terms, text) {
+  any(sapply(search_terms, function(t) grepl(t, text, ignore.case = TRUE)))
+}
+
+comparison_matrix <- data.frame(
+  bib_data = sapply(search_terms, check_hits, text = paste(bib_texts, collapse = " ")),
+  gov_review = sapply(search_terms, check_hits, text = paste(gov_text, collapse = " ")),
+  lit_review = sapply(search_terms, check_hits, text = paste(col_text, collapse = " "))
+)
+```
+
+## Summary Table
+
+```{r summary-table}
+
+# Add numeric sum and evidence strength labels
+comparison_matrix$support_score <- rowSums(comparison_matrix[ , c("bib_data", "gov_review", "lit_review")])
+
+comparison_matrix$evidence_strength <- cut(
+  comparison_matrix$support_score,
+  breaks = c(-1, 0.5, 1.5, 2.5, 3),
+  labels = c("None", "Weak", "Moderate", "Strong"),
+  right = TRUE
+)
+
+knitr::kable(comparison_matrix, caption = "Model Component Evidence Presence")
+```
+
