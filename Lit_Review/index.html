@@ -1504,143 +1504,235 @@ inconsistencies.</p>
 <div id="load-data" class="section level2">
 <h2>Load Data</h2>
 <pre class="r"><code># Load .txt files
-col_text &lt;- tolower(readLines(&quot;text_Review/Text_Lit_Review.txt&quot;))
-gov_text &lt;- tolower(readLines(&quot;text_Review/Text_Policy_Review_Eng.txt&quot;))
+literature_text &lt;- tolower(readLines(&quot;text_Review/Text_Lit_Review.txt&quot;))
 
-bib &lt;- read.bib(&quot;bib/HUPH_Kim Anh.bib&quot;)
-# Load BibTeX entries as plain text
+policy_text &lt;- tolower(readLines(&quot;text_Review/Text_Policy_Review_Eng.txt&quot;))
 
-bib_texts &lt;- tolower(sapply(bib, function(x) paste(x$title, x$abstract, collapse = &quot; &quot;)))</code></pre>
-</div>
-<div id="define-search-terms" class="section level2">
-<h2>Define Search Terms</h2>
-<pre class="r"><code>search_terms &lt;- list(
-  training_nutrition_staff = c(
-    &quot;nutrition training&quot;, &quot;teacher training&quot;, &quot;staff training nutrition&quot;, 
-    &quot;capacity building&quot;, &quot;professional development&quot;, &quot;nutrition knowledge&quot;, 
-    &quot;staff development&quot;, &quot;health educator&quot;, &quot;nutrition education workshop&quot;, 
-    &quot;school staff nutrition training&quot;, &quot;training sessions for teachers&quot;
-  ),
-  
-  training_food_safety_staff = c(
-    &quot;food safety training&quot;, &quot;hygiene training&quot;, &quot;sanitary practices&quot;, 
-    &quot;food handler certification&quot;, &quot;safe food handling&quot;, 
-    &quot;kitchen staff training&quot;, &quot;sanitation workshop&quot;, 
-    &quot;training in safe food practices&quot;
-  ),
-  
-  canteen_nutrition_standards = c(
-    &quot;nutrition standard&quot;, &quot;menu standard&quot;, &quot;rda&quot;, &quot;recommended dietary allowance&quot;, 
-    &quot;dietary guideline&quot;, &quot;meal plan regulation&quot;, &quot;nutrient-based standard&quot;, 
-    &quot;balanced menu&quot;, &quot;nutrition benchmark&quot;, &quot;school food policy&quot;, 
-    &quot;menu planning guideline&quot;
-  ),
-  
-  canteen_restriction_salt_sugar = c(
-    &quot;sugar restriction&quot;, &quot;salt limits&quot;, &quot;junk food ban&quot;, 
-    &quot;limit added sugar&quot;, &quot;low sodium meals&quot;, &quot;snack regulation&quot;, 
-    &quot;sugar-sweetened beverage&quot;, &quot;reduce sugary drinks&quot;, 
-    &quot;high salt foods&quot;, &quot;confectionery restriction&quot;, 
-    &quot;school vending policy&quot;
-  ),
-  
-  school_meal_RDA_compliance = c(
-    &quot;rda&quot;, &quot;rda compliance&quot;, &quot;meets rda&quot;, &quot;nutrient requirements&quot;, 
-    &quot;compliant with guidelines&quot;, &quot;meal meets dietary standards&quot;, 
-    &quot;nutritional adequacy&quot;, &quot;macronutrient targets&quot;, &quot;nutrition density&quot;, 
-    &quot;dietary diversity&quot;, &quot;school meal adequacy&quot;
-  ),
-  
-  food_safety_practices = c(
-    &quot;food safety&quot;, &quot;sanitation&quot;, &quot;kitchen hygiene&quot;, 
-    &quot;foodborne illness prevention&quot;, &quot;safe meal preparation&quot;, 
-    &quot;kitchen cleanliness&quot;, &quot;cross-contamination&quot;, &quot;safe storage&quot;, 
-    &quot;school food inspections&quot;, &quot;health inspections&quot;
-  ),
-  
-  nutrition_practices = c(
-    &quot;nutrition behavior&quot;, &quot;healthy eating&quot;, &quot;dietary habits&quot;, 
-    &quot;child nutrition practices&quot;, &quot;eating behavior&quot;, &quot;school food culture&quot;, 
-    &quot;nutritious meal habits&quot;, &quot;healthy food choices&quot;, 
-    &quot;student eating patterns&quot;, &quot;nutrition habits&quot;
-  ),
-  
-  parent_monitoring = c(
-    &quot;parent involvement&quot;, &quot;parental oversight&quot;, &quot;family engagement&quot;, 
-    &quot;guardian participation&quot;, &quot;parent-school collaboration&quot;, 
-    &quot;home food environment&quot;, &quot;family influence&quot;, &quot;parent nutrition knowledge&quot;
-  ),
-  
-  unhealthy_gate_foods = c(
-    &quot;street food&quot;, &quot;off-campus&quot;, &quot;external food&quot;, &quot;gate vendors&quot;, 
-    &quot;food outside school&quot;, &quot;snack carts&quot;, &quot;mobile vendors&quot;, 
-    &quot;non-canteen food&quot;, &quot;junk food near school&quot;, 
-    &quot;external food environment&quot;, &quot;gate-side sellers&quot;
-  ),
-  
-  canteen_sells_unhealthy = c(
-    &quot;unhealthy food at canteen&quot;, &quot;junk food sold at school&quot;, 
-    &quot;sugar drinks sold&quot;, &quot;canteen menu audit&quot;, &quot;school food audit&quot;, 
-    &quot;low-quality school meals&quot;, &quot;fried food in canteen&quot;, 
-    &quot;sweetened beverages&quot;, &quot;non-compliant school food&quot;
-  ),
-  
-  children_consume_healthy = c(
-    &quot;fruit consumption&quot;, &quot;vegetable intake&quot;, &quot;healthy eating&quot;, 
-    &quot;children eat healthy&quot;, &quot;nutritious food consumption&quot;, 
-    &quot;whole foods&quot;, &quot;low sugar diet&quot;, &quot;balanced intake&quot;, 
-    &quot;diet quality&quot;, &quot;diverse meal consumption&quot;
-  ),
-  
-  teacher_overwork = c(
-    &quot;teacher burden&quot;, &quot;staff overwork&quot;, &quot;workload stress&quot;, 
-    &quot;curricular overload&quot;, &quot;teacher capacity&quot;, 
-    &quot;overburdened teachers&quot;, &quot;staff exhaustion&quot;, &quot;teaching constraints&quot;
-  ),
-  
-  peer_influence = c(
-    &quot;peer pressure&quot;, &quot;friend influence&quot;, &quot;social norms&quot;, 
-    &quot;peer modeling&quot;, &quot;student peer effect&quot;, 
-    &quot;classmate eating habits&quot;, &quot;friend food influence&quot;
-  ),
-  
-  adverts_near_school = c(
-    &quot;advertising&quot;, &quot;ads near school&quot;, &quot;junk food marketing&quot;, 
-    &quot;commercial marketing to children&quot;, &quot;food advertising&quot;, 
-    &quot;point of sale marketing&quot;, &quot;billboards&quot;, &quot;branded food promotion&quot;, 
-    &quot;media food influence&quot;
-  ),
-  
-  health_lessons = c(
-    &quot;health education&quot;, &quot;nutrition class&quot;, &quot;health curriculum&quot;, 
-    &quot;classroom nutrition instruction&quot;, &quot;food education&quot;, 
-    &quot;school-based health lesson&quot;, &quot;diet education&quot;, 
-    &quot;curriculum-integrated nutrition&quot;, &quot;classroom wellness lesson&quot;
-  ),
-  
-  resistance_staff = c(
-    &quot;staff resistance&quot;, &quot;teacher reluctance&quot;, &quot;implementation barrier&quot;, 
-    &quot;staff pushback&quot;, &quot;lack of buy-in&quot;, &quot;teacher discomfort&quot;, 
-    &quot;training refusal&quot;, &quot;opposition to nutrition policy&quot;
-  ),
-  
-  resistance_child = c(
-    &quot;student resistance&quot;, &quot;child refusal&quot;, &quot;child preference&quot;, 
-    &quot;food rejection&quot;, &quot;student pushback&quot;, &quot;children refuse meals&quot;, 
-    &quot;unpopular school food&quot;, &quot;low student participation&quot;
-  ),
-  
-  budget_costs = c(
-    &quot;budget&quot;, &quot;affordability&quot;, &quot;costs&quot;, &quot;school finance&quot;, 
-    &quot;financial constraints&quot;, &quot;meal funding&quot;, &quot;budget limitation&quot;, 
-    &quot;fiscal sustainability&quot;, &quot;economic barrier&quot;, &quot;cost-effectiveness&quot;
-  ),
-  
-  NPV_health_impact = c(
-    &quot;cost-effectiveness&quot;, &quot;net benefit&quot;, &quot;npv&quot;, &quot;economic impact&quot;, 
-    &quot;long-term benefit&quot;, &quot;return on investment&quot;, &quot;economic evaluation&quot;, 
-    &quot;social benefit&quot;, &quot;benefit-cost ratio&quot;, &quot;value for money&quot;
+bib_policy &lt;- read.bib(&quot;bib/school_meal_policy.bib&quot;)
+
+# Load BibTeX policy entries as plain text
+# bib_texts_policy &lt;- tolower(sapply(bib_policy, function(x) paste(x$title, x$abstract, collapse = &quot; &quot;)))
+
+bib_texts_policy &lt;- tolower(sapply(bib_policy, function(x) {
+  paste(
+    x$title,
+    x$abstract,
+    if (!is.null(x$annote)) paste(x$annote, collapse = &quot; &quot;) else &quot;&quot;,
+    collapse = &quot; &quot;
   )
+}))
+
+
+# Load BibTeX literature entries as plain text
+bib_literature &lt;- read.bib(&quot;bib/school_meal_literature.bib&quot;)
+
+# Load BibTeX literature entries as plain text
+bib_texts_literature &lt;- tolower(sapply(bib_literature, function(x) {
+  paste(
+    x$title,
+    x$abstract,
+    if (!is.null(x$annote)) paste(x$annote, collapse = &quot; &quot;) else &quot;&quot;,
+    collapse = &quot; &quot;
+  )
+}))</code></pre>
+</div>
+<div id="define-search-terms" class="section level1">
+<h1>Define search terms</h1>
+<div id="food_tech_training" class="section level2">
+<h2>food_tech_training</h2>
+<p>Infrastructure, equipment, and capacity-building components needed
+for food preparation and delivery in schools.</p>
+<pre class="r"><code>food_tech_training = c(
+  &quot;kitchen equipment&quot;, &quot;cooking equipment&quot;, &quot;commercial kitchen&quot;, 
+  &quot;school meal preparation&quot;, &quot;technical food support&quot;, 
+  &quot;canteen operations&quot;, &quot;food service logistics&quot;, 
+  &quot;kitchen operations&quot;, &quot;meal service infrastructure&quot;, 
+  &quot;food production capacity&quot;, &quot;food storage infrastructure&quot;, 
+  &quot;kitchen staff training&quot;, &quot;food preparation training&quot;, 
+  &quot;school catering system&quot;, &quot;school meal delivery&quot;, 
+  &quot;bulk cooking systems&quot;, &quot;school kitchen upgrade&quot;, 
+  &quot;food handling facility&quot;, &quot;school feeding infrastructure&quot;, &quot;trained and educated on proper nutrition&quot;
+)</code></pre>
+</div>
+<div id="teaching_resources" class="section level2">
+<h2>teaching_resources</h2>
+<p>Time, personnel, and instructional capacity needed for teachers and
+staff to implement nutrition interventions.</p>
+<pre class="r"><code>teaching_resources = c(
+  &quot;teaching workload&quot;, &quot;teacher time&quot;, &quot;instructional time&quot;, 
+  &quot;curricular demands&quot;, &quot;lesson planning constraints&quot;, 
+  &quot;staffing capacity&quot;, &quot;teacher availability&quot;, 
+  &quot;instructional burden&quot;, &quot;curriculum overcrowding&quot;, 
+  &quot;limited teaching time&quot;, &quot;staffing shortage&quot;, 
+  &quot;time allocation&quot;, &quot;teaching schedule&quot;, 
+  &quot;instructional capacity&quot;, &quot;non-teaching responsibilities&quot;, 
+  &quot;classroom time pressure&quot;, &quot;teacher deployment&quot;, 
+  &quot;resource constraints for instruction&quot;
+)</code></pre>
+</div>
+<div id="staff_skill" class="section level2">
+<h2>staff_skill</h2>
+<p>The pedagogical and technical competencies of school staff related to
+nutrition, health, and food safety.</p>
+<pre class="r"><code>staff_skill = c(
+  &quot;staff nutrition knowledge&quot;, &quot;teacher nutrition competency&quot;, 
+  &quot;school health educators&quot;, &quot;teacher skills&quot;, 
+  &quot;staff training&quot;, &quot;training effectiveness&quot;, 
+  &quot;professional development for teachers&quot;, 
+  &quot;teacher capacity building&quot;, &quot;staff development programs&quot;, 
+  &quot;food literacy training&quot;, &quot;capacity development&quot;, 
+  &quot;in-service training&quot;, &quot;teacher competence&quot;, 
+  &quot;educator readiness&quot;, &quot;pedagogical support for nutrition&quot;, 
+  &quot;staff preparation&quot;, &quot;training coverage&quot;, 
+  &quot;staff instructional skills&quot;, &quot;training quality&quot;, 
+  &quot;nutrition educator training&quot;
+)</code></pre>
+</div>
+<div id="intervention_cost" class="section level2">
+<h2>intervention_cost</h2>
+<p>Economic factors influencing the feasibility, sustainability, and
+scalability of school-based nutrition interventions, including direct
+costs and systemic financial constraints.</p>
+<pre class="r"><code>intervention_cost = c(
+  &quot;intervention cost&quot;, &quot;program cost&quot;, &quot;implementation cost&quot;, 
+  &quot;financial feasibility&quot;, &quot;budget constraint&quot;, &quot;school finance&quot;, 
+  &quot;economic barrier&quot;, &quot;affordability&quot;, &quot;funding shortfall&quot;, 
+  &quot;resource allocation&quot;, &quot;cost-effectiveness&quot;, &quot;cost-benefit&quot;, 
+  &quot;financial sustainability&quot;, &quot;school budget&quot;, &quot;budget limitation&quot;, 
+  &quot;fiscal capacity&quot;, &quot;operational cost&quot;, &quot;nutrition program funding&quot;, 
+  &quot;financial barrier&quot;, &quot;economic feasibility&quot;, &quot;budget planning&quot;, 
+  &quot;cost per child&quot;, &quot;nutrition intervention expenses&quot;
+)</code></pre>
+</div>
+<div id="canteen_change" class="section level2">
+<h2>canteen_change</h2>
+<p>Policy-driven or structural reforms to the school food environment,
+particularly within canteen services, aimed at improving food quality,
+nutritional adequacy, and student access to healthy meals.</p>
+<pre class="r"><code>canteen_change = c(
+  &quot;canteen reform&quot;, &quot;school meal change&quot;, &quot;menu revision&quot;, 
+  &quot;canteen intervention&quot;, &quot;food service reform&quot;, 
+  &quot;school food environment&quot;, &quot;healthy food provision&quot;, 
+  &quot;nutrition-sensitive canteen&quot;, &quot;school food policy&quot;, 
+  &quot;canteen nutrition standards&quot;, &quot;meal plan reform&quot;, 
+  &quot;food service update&quot;, &quot;school food regulation&quot;, 
+  &quot;canteen policy enforcement&quot;, &quot;nutritional canteen shift&quot;, 
+  &quot;menu redesign&quot;, &quot;food procurement reform&quot;, 
+  &quot;canteen-based intervention&quot;, &quot;school food service management&quot;
+)</code></pre>
+</div>
+<div id="nutrition_lessons" class="section level2">
+<h2>nutrition_lessons</h2>
+<p>Educational initiatives and curricular strategies that provide
+students with knowledge, skills, and attitudes related to nutrition,
+diet, and healthy lifestyle practices.</p>
+<pre class="r"><code>nutrition_lessons = c(
+  &quot;nutrition education&quot;, &quot;health class&quot;, &quot;food literacy lessons&quot;, 
+  &quot;nutrition curriculum&quot;, &quot;classroom food education&quot;, 
+  &quot;school-based nutrition instruction&quot;, &quot;dietary education&quot;, 
+  &quot;nutrition teaching materials&quot;, &quot;health promotion teaching&quot;, 
+  &quot;lesson on healthy eating&quot;, &quot;curriculum-integrated nutrition&quot;, 
+  &quot;food education&quot;, &quot;nutrition behavior curriculum&quot;, 
+  &quot;classroom nutrition program&quot;, &quot;healthy eating curriculum&quot;, 
+  &quot;nutrition awareness education&quot;, &quot;school nutrition module&quot;, 
+  &quot;teacher-led nutrition instruction&quot;, &quot;classroom wellness lesson&quot;
+)</code></pre>
+</div>
+<div id="food_ads" class="section level2">
+<h2>food_ads</h2>
+<p>Advertising and commercial promotion of unhealthy foods in the school
+environment or within children’s media ecosystems that influence eating
+behaviors and preferences.</p>
+<pre class="r"><code>food_ads = c(
+  &quot;food marketing&quot;, &quot;junk food advertising&quot;, &quot;unhealthy food ads&quot;, 
+  &quot;child-targeted food marketing&quot;, &quot;ads near school&quot;, 
+  &quot;commercial food promotion&quot;, &quot;branded snack promotion&quot;, 
+  &quot;advertising to children&quot;, &quot;point of sale marketing&quot;, 
+  &quot;school food advertising&quot;, &quot;child-directed advertising&quot;, 
+  &quot;food and beverage marketing&quot;, &quot;media food influence&quot;, 
+  &quot;food advertisements&quot;, &quot;billboard marketing&quot;, 
+  &quot;TV food commercials&quot;, &quot;digital food marketing&quot;, 
+  &quot;sugar-sweetened beverage marketing&quot;, &quot;fast food advertising&quot;, 
+  &quot;packaging marketing to kids&quot;
+)</code></pre>
+</div>
+<div id="off_campus" class="section level2">
+<h2>off_campus</h2>
+<p>The external food environment accessible to students outside of
+school grounds, including vendors, markets, and informal sources that
+often provide low-nutrient, energy-dense foods.</p>
+<pre class="r"><code>off_campus = c(
+  &quot;off-campus eating&quot;, &quot;external food&quot;, &quot;street food vendors&quot;, 
+  &quot;gate food&quot;, &quot;junk food near school&quot;, &quot;mobile food vendors&quot;, 
+  &quot;non-canteen food&quot;, &quot;external food purchases&quot;, 
+  &quot;school gate vendors&quot;, &quot;food from outside school&quot;, 
+  &quot;unregulated food sales&quot;, &quot;open food access&quot;, 
+  &quot;snack carts near school&quot;, &quot;neighborhood food environment&quot;, 
+  &quot;informal food sources&quot;, &quot;out-of-school food access&quot;, 
+  &quot;off-premises food&quot;, &quot;community vendors near school&quot;
+)</code></pre>
+</div>
+<div id="on_campus" class="section level2">
+<h2>on_campus</h2>
+<p>Food consumption and dietary behaviors that occur within school
+premises, including those influenced by school meals, canteen offerings,
+and in-school food policies.</p>
+<pre class="r"><code>on_campus = c(
+  &quot;school food consumption&quot;, &quot;on-site meal intake&quot;, 
+  &quot;canteen food intake&quot;, &quot;in-school dietary habits&quot;, 
+  &quot;school-based eating&quot;, &quot;healthy eating in school&quot;, 
+  &quot;school meal participation&quot;, &quot;in-school food intake&quot;, 
+  &quot;on-campus nutrition&quot;, &quot;eating during school hours&quot;, 
+  &quot;classroom snack practices&quot;, &quot;canteen-based eating&quot;, 
+  &quot;student food behavior in school&quot;, &quot;regulated food intake&quot;, 
+  &quot;school food environment behavior&quot;, &quot;food consumption at school&quot;
+)</code></pre>
+</div>
+<div id="student_learning" class="section level2">
+<h2>student_learning</h2>
+<p>Academic and cognitive outcomes linked to nutrition and school health
+environments, including concentration, performance, and educational
+attainment.</p>
+<pre class="r"><code>student_learning = c(
+  &quot;learning outcomes&quot;, &quot;academic performance&quot;, &quot;school achievement&quot;, 
+  &quot;cognitive benefit&quot;, &quot;cognitive development&quot;, &quot;classroom concentration&quot;, 
+  &quot;student attention span&quot;, &quot;education impact&quot;, 
+  &quot;student knowledge gain&quot;, &quot;test scores&quot;, 
+  &quot;reading comprehension&quot;, &quot;numeracy outcomes&quot;, 
+  &quot;academic success&quot;, &quot;educational attainment&quot;, 
+  &quot;classroom engagement&quot;, &quot;learning readiness&quot;, 
+  &quot;mental focus&quot;, &quot;academic participation&quot;, 
+  &quot;nutrition and learning&quot;, &quot;school-based academic improvement&quot;
+)</code></pre>
+</div>
+<div id="student_health" class="section level2">
+<h2>student_health</h2>
+<p>Physical health outcomes affected by school food environments,
+including growth, weight status, illness prevalence, and long-term
+well-being.</p>
+<pre class="r"><code>student_health = c(
+  &quot;child health&quot;, &quot;student well-being&quot;, &quot;healthy weight&quot;, 
+  &quot;BMI improvement&quot;, &quot;nutritional status&quot;, 
+  &quot;diet-related health&quot;, &quot;physical development&quot;, 
+  &quot;illness reduction&quot;, &quot;health outcome&quot;, &quot;childhood obesity&quot;, 
+  &quot;malnutrition&quot;, &quot;nutrition-related disease&quot;, 
+  &quot;student physical health&quot;, &quot;diet quality outcome&quot;, 
+  &quot;chronic disease prevention&quot;, &quot;health behavior&quot;, 
+  &quot;public health outcome&quot;, &quot;body mass index&quot;, 
+  &quot;school nutrition outcomes&quot;, &quot;growth monitoring&quot;
+)</code></pre>
+<pre class="r"><code>search_terms &lt;- list(
+  food_tech_training = food_tech_training,
+  teaching_resources = teaching_resources,
+  staff_skill = staff_skill,
+  intervention_cost = intervention_cost,
+  canteen_change = canteen_change,
+  nutrition_lessons = nutrition_lessons,
+  food_ads = food_ads,
+  off_campus = off_campus,
+  on_campus = on_campus,
+  student_learning = student_learning,
+  student_health = student_health
 )</code></pre>
 </div>
 <div id="check-text-hits" class="section level2">
@@ -1650,199 +1742,150 @@ bib_texts &lt;- tolower(sapply(bib, function(x) paste(x$title, x$abstract, colla
 }
 
 comparison_matrix &lt;- data.frame(
-  bib_data = sapply(search_terms, check_hits, text = paste(bib_texts, collapse = &quot; &quot;)),
-  gov_review = sapply(search_terms, check_hits, text = paste(gov_text, collapse = &quot; &quot;)),
-  lit_review = sapply(search_terms, check_hits, text = paste(col_text, collapse = &quot; &quot;))
+  bib_data_policy = sapply(search_terms, check_hits, text = paste(bib_texts_policy, collapse = &quot; &quot;)),
+  bib_data_lit = sapply(search_terms, check_hits, text = paste(bib_texts_literature, collapse = &quot; &quot;)),
+  gov_review = sapply(search_terms, check_hits, text = paste(policy_text, collapse = &quot; &quot;)),
+  lit_review = sapply(search_terms, check_hits, text = paste(literature_text, collapse = &quot; &quot;))
 )</code></pre>
 </div>
-<div id="summary-table" class="section level2">
-<h2>Summary Table</h2>
+<div id="summary-table-full-model" class="section level2">
+<h2>Summary Table full model</h2>
 <pre class="r"><code># Add numeric sum and evidence strength labels
-comparison_matrix$support_score &lt;- rowSums(comparison_matrix[ , c(&quot;bib_data&quot;, &quot;gov_review&quot;, &quot;lit_review&quot;)])
+comparison_matrix$support_score &lt;- rowSums(comparison_matrix[ , c(&quot;bib_data_policy&quot;, &quot;gov_review&quot;, &quot;bib_data_lit&quot;, &quot;lit_review&quot;)])
 
 comparison_matrix$evidence_strength &lt;- cut(
   comparison_matrix$support_score,
-  breaks = c(-1, 0.5, 1.5, 2.5, 3),
+  breaks = c(-1, 1, 2, 3, 4.1),
   labels = c(&quot;None&quot;, &quot;Weak&quot;, &quot;Moderate&quot;, &quot;Strong&quot;),
   right = TRUE
-)
+)</code></pre>
+<pre class="r"><code># Clean row names
+rownames(comparison_matrix) &lt;- gsub(&quot;_&quot;, &quot; &quot;, rownames(comparison_matrix))
+rownames(comparison_matrix) &lt;- stringr::str_to_title(rownames(comparison_matrix))
 
-knitr::kable(comparison_matrix, caption = &quot;Model Component Evidence Presence&quot;)</code></pre>
+# Clean column names
+colnames(comparison_matrix) &lt;- gsub(&quot;_&quot;, &quot; &quot;, colnames(comparison_matrix))
+colnames(comparison_matrix) &lt;- stringr::str_to_title(colnames(comparison_matrix))
+
+
+knitr::kable(
+  comparison_matrix[, !(names(comparison_matrix) %in% &quot;Support Score&quot;)],
+  caption = &quot;Model Component Evidence Presence&quot;
+)</code></pre>
 <table>
 <caption>Model Component Evidence Presence</caption>
 <colgroup>
-<col width="32%" />
-<col width="9%" />
-<col width="11%" />
-<col width="11%" />
+<col width="21%" />
+<col width="18%" />
 <col width="14%" />
-<col width="19%" />
+<col width="12%" />
+<col width="12%" />
+<col width="20%" />
 </colgroup>
 <thead>
 <tr class="header">
 <th align="left"></th>
-<th align="left">bib_data</th>
-<th align="left">gov_review</th>
-<th align="left">lit_review</th>
-<th align="right">support_score</th>
-<th align="left">evidence_strength</th>
+<th align="left">Bib Data Policy</th>
+<th align="left">Bib Data Lit</th>
+<th align="left">Gov Review</th>
+<th align="left">Lit Review</th>
+<th align="left">Evidence Strength</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td align="left">training_nutrition_staff</td>
-<td align="left">FALSE</td>
-<td align="left">FALSE</td>
+<td align="left">Food Tech Training</td>
 <td align="left">TRUE</td>
-<td align="right">1</td>
-<td align="left">Weak</td>
+<td align="left">FALSE</td>
+<td align="left">FALSE</td>
+<td align="left">FALSE</td>
+<td align="left">None</td>
 </tr>
 <tr class="even">
-<td align="left">training_food_safety_staff</td>
+<td align="left">Teaching Resources</td>
 <td align="left">FALSE</td>
 <td align="left">TRUE</td>
 <td align="left">FALSE</td>
-<td align="right">1</td>
+<td align="left">FALSE</td>
+<td align="left">None</td>
+</tr>
+<tr class="odd">
+<td align="left">Staff Skill</td>
+<td align="left">FALSE</td>
+<td align="left">TRUE</td>
+<td align="left">FALSE</td>
+<td align="left">FALSE</td>
+<td align="left">None</td>
+</tr>
+<tr class="even">
+<td align="left">Intervention Cost</td>
+<td align="left">FALSE</td>
+<td align="left">TRUE</td>
+<td align="left">FALSE</td>
+<td align="left">TRUE</td>
 <td align="left">Weak</td>
 </tr>
 <tr class="odd">
-<td align="left">canteen_nutrition_standards</td>
+<td align="left">Canteen Change</td>
+<td align="left">FALSE</td>
+<td align="left">TRUE</td>
+<td align="left">FALSE</td>
+<td align="left">TRUE</td>
+<td align="left">Weak</td>
+</tr>
+<tr class="even">
+<td align="left">Nutrition Lessons</td>
+<td align="left">TRUE</td>
+<td align="left">TRUE</td>
+<td align="left">FALSE</td>
+<td align="left">TRUE</td>
+<td align="left">Moderate</td>
+</tr>
+<tr class="odd">
+<td align="left">Food Ads</td>
+<td align="left">FALSE</td>
+<td align="left">TRUE</td>
+<td align="left">FALSE</td>
+<td align="left">FALSE</td>
+<td align="left">None</td>
+</tr>
+<tr class="even">
+<td align="left">Off Campus</td>
+<td align="left">FALSE</td>
+<td align="left">FALSE</td>
+<td align="left">FALSE</td>
+<td align="left">FALSE</td>
+<td align="left">None</td>
+</tr>
+<tr class="odd">
+<td align="left">On Campus</td>
+<td align="left">FALSE</td>
+<td align="left">FALSE</td>
+<td align="left">FALSE</td>
+<td align="left">FALSE</td>
+<td align="left">None</td>
+</tr>
+<tr class="even">
+<td align="left">Student Learning</td>
+<td align="left">TRUE</td>
+<td align="left">TRUE</td>
+<td align="left">FALSE</td>
+<td align="left">TRUE</td>
+<td align="left">Moderate</td>
+</tr>
+<tr class="odd">
+<td align="left">Student Health</td>
 <td align="left">TRUE</td>
 <td align="left">TRUE</td>
 <td align="left">TRUE</td>
-<td align="right">3</td>
+<td align="left">TRUE</td>
 <td align="left">Strong</td>
-</tr>
-<tr class="even">
-<td align="left">canteen_restriction_salt_sugar</td>
-<td align="left">FALSE</td>
-<td align="left">FALSE</td>
-<td align="left">FALSE</td>
-<td align="right">0</td>
-<td align="left">None</td>
-</tr>
-<tr class="odd">
-<td align="left">school_meal_RDA_compliance</td>
-<td align="left">TRUE</td>
-<td align="left">TRUE</td>
-<td align="left">FALSE</td>
-<td align="right">2</td>
-<td align="left">Moderate</td>
-</tr>
-<tr class="even">
-<td align="left">food_safety_practices</td>
-<td align="left">TRUE</td>
-<td align="left">TRUE</td>
-<td align="left">TRUE</td>
-<td align="right">3</td>
-<td align="left">Strong</td>
-</tr>
-<tr class="odd">
-<td align="left">nutrition_practices</td>
-<td align="left">TRUE</td>
-<td align="left">FALSE</td>
-<td align="left">TRUE</td>
-<td align="right">2</td>
-<td align="left">Moderate</td>
-</tr>
-<tr class="even">
-<td align="left">parent_monitoring</td>
-<td align="left">FALSE</td>
-<td align="left">FALSE</td>
-<td align="left">FALSE</td>
-<td align="right">0</td>
-<td align="left">None</td>
-</tr>
-<tr class="odd">
-<td align="left">unhealthy_gate_foods</td>
-<td align="left">FALSE</td>
-<td align="left">FALSE</td>
-<td align="left">FALSE</td>
-<td align="right">0</td>
-<td align="left">None</td>
-</tr>
-<tr class="even">
-<td align="left">canteen_sells_unhealthy</td>
-<td align="left">TRUE</td>
-<td align="left">FALSE</td>
-<td align="left">FALSE</td>
-<td align="right">1</td>
-<td align="left">Weak</td>
-</tr>
-<tr class="odd">
-<td align="left">children_consume_healthy</td>
-<td align="left">TRUE</td>
-<td align="left">FALSE</td>
-<td align="left">TRUE</td>
-<td align="right">2</td>
-<td align="left">Moderate</td>
-</tr>
-<tr class="even">
-<td align="left">teacher_overwork</td>
-<td align="left">FALSE</td>
-<td align="left">FALSE</td>
-<td align="left">FALSE</td>
-<td align="right">0</td>
-<td align="left">None</td>
-</tr>
-<tr class="odd">
-<td align="left">peer_influence</td>
-<td align="left">FALSE</td>
-<td align="left">FALSE</td>
-<td align="left">FALSE</td>
-<td align="right">0</td>
-<td align="left">None</td>
-</tr>
-<tr class="even">
-<td align="left">adverts_near_school</td>
-<td align="left">FALSE</td>
-<td align="left">FALSE</td>
-<td align="left">FALSE</td>
-<td align="right">0</td>
-<td align="left">None</td>
-</tr>
-<tr class="odd">
-<td align="left">health_lessons</td>
-<td align="left">TRUE</td>
-<td align="left">TRUE</td>
-<td align="left">FALSE</td>
-<td align="right">2</td>
-<td align="left">Moderate</td>
-</tr>
-<tr class="even">
-<td align="left">resistance_staff</td>
-<td align="left">FALSE</td>
-<td align="left">FALSE</td>
-<td align="left">FALSE</td>
-<td align="right">0</td>
-<td align="left">None</td>
-</tr>
-<tr class="odd">
-<td align="left">resistance_child</td>
-<td align="left">FALSE</td>
-<td align="left">FALSE</td>
-<td align="left">FALSE</td>
-<td align="right">0</td>
-<td align="left">None</td>
-</tr>
-<tr class="even">
-<td align="left">budget_costs</td>
-<td align="left">FALSE</td>
-<td align="left">FALSE</td>
-<td align="left">TRUE</td>
-<td align="right">1</td>
-<td align="left">Weak</td>
-</tr>
-<tr class="odd">
-<td align="left">NPV_health_impact</td>
-<td align="left">FALSE</td>
-<td align="left">FALSE</td>
-<td align="left">FALSE</td>
-<td align="right">0</td>
-<td align="left">None</td>
 </tr>
 </tbody>
 </table>
+<!-- ```{r long_full_model, child=long_full_model.Rmd} -->
+<!-- ``` -->
+</div>
 </div>
 
 
