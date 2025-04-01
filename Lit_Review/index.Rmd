@@ -310,12 +310,27 @@ comparison_matrix$support_score <- rowSums(comparison_matrix[ , c("bib_data_poli
 
 comparison_matrix$evidence_strength <- cut(
   comparison_matrix$support_score,
-  breaks = c(-1, 0.5, 1.5, 2.5, 3),
+  breaks = c(-1, 1, 2, 3, 4.1),
   labels = c("None", "Weak", "Moderate", "Strong"),
   right = TRUE
 )
+```
 
-knitr::kable(comparison_matrix, caption = "Model Component Evidence Presence")
+```{r table}
+
+# Clean row names
+rownames(comparison_matrix) <- gsub("_", " ", rownames(comparison_matrix))
+rownames(comparison_matrix) <- stringr::str_to_title(rownames(comparison_matrix))
+
+# Clean column names
+colnames(comparison_matrix) <- gsub("_", " ", colnames(comparison_matrix))
+colnames(comparison_matrix) <- stringr::str_to_title(colnames(comparison_matrix))
+
+
+knitr::kable(
+  comparison_matrix[, !(names(comparison_matrix) %in% "Support Score")],
+  caption = "Model Component Evidence Presence"
+)
 ```
 
 
