@@ -310,7 +310,7 @@ comparison_matrix$support_score <- rowSums(comparison_matrix[ , c("bib_data_poli
 
 comparison_matrix$evidence_strength <- cut(
   comparison_matrix$support_score,
-  breaks = c(-1, 1, 2, 3, 4.1),
+  breaks = c(-1, 0.1, 1.3, 3.1, 4.1),
   labels = c("None", "Weak", "Moderate", "Strong"),
   right = TRUE
 )
