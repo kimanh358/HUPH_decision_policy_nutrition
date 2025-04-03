@@ -14,7 +14,8 @@ knitr::opts_chunk$set(echo = TRUE)
 library(stringr)
 library(bibtex)
 library(dplyr)
-
+library(ggplot2)
+library(decisionSupport)
 ```
 
 Here we outline a workflow with algorithmic support in R for comparing our conceptual model to the existing literature corpus, the government policy documents and a qualitative assessment.
@@ -33,7 +34,7 @@ As a first step we framed the decision of implementing school meal policy. We de
 
 we performed a review of policy and literature documents. Here we load the data resulting from the literature and policy review.
 
-```{r load-texts}
+```{r load-texts, warning=FALSE}
 # Load .txt files
 literature_text <- tolower(readLines("text_Review/Text_Lit_Review.txt"))
 
@@ -166,7 +167,6 @@ canteen_change = c(
 
 Educational initiatives and curricular strategies that provide students with knowledge, skills, and attitudes related to nutrition, diet, and healthy lifestyle practices.
 
-
 ```{r nutrition_lessons}
 
 nutrition_lessons = c(
@@ -240,7 +240,6 @@ on_campus = c(
 
 Academic and cognitive outcomes linked to nutrition and school health environments, including concentration, performance, and educational attainment.
 
-
 ```{r student_learning}
 
 student_learning = c(
@@ -295,6 +294,8 @@ search_terms <- list(
 
 ## Check Text Hits
 
+We created a comparison matrix to compare results of the literature and policy review. 
+
 ```{r check-function}
 check_hits <- function(search_terms, text) {
   any(sapply(search_terms, function(t) grepl(t, text, ignore.case = TRUE)))
@@ -308,7 +309,7 @@ comparison_matrix <- data.frame(
 )
 ```
 
-## Summary Table full model
+A table summarizing the comparison
 
 ```{r comparison_matrix}
 
@@ -321,7 +322,6 @@ comparison_matrix$evidence_strength <- cut(
   labels = c("", "Weak", "Moderate", "Strong"),
   right = TRUE
 )
-
 
 # Clean row names
 rownames(comparison_matrix) <- gsub("_", " ", rownames(comparison_matrix))
@@ -439,9 +439,8 @@ We ran the full model using Monte Carlo simulation to estimate the likely outcom
 
 The outputs include both health cost savings (e.g. avoided diagnoses and treatments) and economic return (net present value compared to the baseline). These are plotted below to visualize the decision space.
 
-```{r monte_carlo}
-library(ggplot2)
-library(decisionSupport)
+```{r monte_carlo, warning=FALSE}
+
 
 source("functions/school_policy_function.R")
 # Load inputs and run simulation
@@ -456,16 +455,6 @@ simulation_result <- mcSimulation(
   numberOfModelRuns = numberOfModelRuns,
   functionSyntax = "plainNames"
 )
-
-# Scatter plot of health vs. economic return
-ggplot(simulation_result$y, aes(x = decision_value, y = health_cost_savings)) +
-  geom_point(alpha = 0.3) +
-  labs(
-    title = "Simulated Policy Outcomes",
-    x = "Economic Return (NPV: Policy – No Policy) [million VND]",
-    y = "Health Cost Savings [million VND]"
-  ) +
-  theme_minimal()
 
 ```
 
