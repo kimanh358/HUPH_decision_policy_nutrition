@@ -122,7 +122,6 @@ school_policy_function <- function(
     list(
       decision_value = npv_policy - npv_no_policy,
       health_cost_savings = health_cost_savings,
-      Cashflow_policy = policy_benefit - policy_cost,
       cost_per_student = cost_per_student
     )
   )
