@@ -47,11 +47,17 @@ food_access_and_consumption_bmi_improve,0.01,,0.3,tnorm_0_1, bmi improve if chil
 food_access_and_consumption_reduce_overweight,0.01,,0.1,tnorm_0_1,% of reduction 
 food_access_and_consumption_reduce_underweight,0.01,,0.1,tnorm_0_1,
 ,,,,,
-unhealthy_canteen_foods,0.01,,0.1,tnorm_0_1,
-unhealthy_food_exposure,0.01,,0.1,tnorm_0_1,
-advertisement_exposure,0.01,,0.1,tnorm_0_1,
-peer_influence_factor,0.01,,0.1,tnorm_0_1,
-physical_activity_program_effective,0.2,,0.6,tnorm_0_1,
-physical_activity_effect,0.01,,0.1,tnorm_0_1,
-student_performance_improvement,0.01,,0.1,tnorm_0_1,
-value_of_learning_per_student,1,,10,posnorm,
+unhealthy_canteen_foods,0.01,,0.1,tnorm_0_1,Prob of unhealthy canteen foods (%)
+unhealthy_food_exposure,0.01,,0.1,tnorm_0_1,Prob of unhealthy food exposire (%)
+advertisement_exposure,0.01,,0.1,tnorm_0_1,Prob of advertisement exposure (%)
+peer_influence_factor,0.01,,0.1,tnorm_0_1,Amount of peer influence (%)
+physical_activity_program_effective,0.2,,0.6,tnorm_0_1,if sports education effective (%)
+physical_activity_effect,0.01,,0.1,tnorm_0_1,effect of physical activity (%)
+student_performance_improvement,0.01,,0.1,tnorm_0_1,Prob of students improving in class (%)
+value_of_learning_per_student,1,,10,posnorm,value of learning per student (million VND/yr)
+,,,,,
+use_staff_training_foodsafety,0.1,,0.9,tnorm_0_1,if staff training (%)
+use_staff_training_nutrition,0.1,,0.9,tnorm_0_1,if nutrition training (%)
+use_physical_activity,0.1,,0.9,tnorm_0_1,if physical education (%)
+use_menu_change_rda,0.1,,0.9,tnorm_0_1,if menu change for RDA (%)
+use_limit_unhealthy_canteen_food,0.1,,0.9,tnorm_0_1,if limit unhealthy canteen food (%)
