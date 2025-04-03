@@ -16,23 +16,25 @@ library(bibtex)
 library(dplyr)
 library(ggplot2)
 library(decisionSupport)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
 ```
 
-Here we outline a workflow with algorithmic support in R for comparing our conceptual model to the existing literature corpus, the government policy documents and a qualitative assessment.
+Here we outline a workflow with algorithmic support in R for comparing our conceptual model to the existing literature corpus, the government policy documents and a qualitative assessment. We apply these findings to systematically evaluate whether each component of our conceptual model is supported, refuted, missing from the literature and/or policy documents. We then synthesize this into a justified and adjusted version of the model.
 
-We apply this to systematically evaluate whether each component of our conceptual model is supported, refuted, missing from the literature and/or policy documents. We then synthesize this into a shorter, more justified and adjusted version of the model.
-
-We build a semi-automated evidence synthesis framework that treats our documents like a team of virtual reviewers. The core idea is to define the core elements from your simple conceptual model (e.g. canteen regulation, staff training, food safety, nutrition education, etc.), search and summarize what each document says about each element, score the strength and direction of evidence per element, compare and synthesize to get a high-level view of agreement, gaps, and inconsistencies.
+We build a semi-automated evidence synthesis framework that treats our documents like a team of virtual reviewers. The core idea is to define the core elements from our simple conceptual model (e.g. canteen regulation, staff training, food safety, nutrition education, etc.), search and summarize what each document says about each element, score the strength and direction of evidence per element, compare and synthesize to get a high-level view of agreement, gaps, and inconsistencies.
 
 ## Decision framing
 
 As a first step we framed the decision of implementing school meal policy. We determined our general understanding of the decision problem in the form of a simple causal model representing the important costs benefits and risks that policy will have at the school level. 
 
 ![Full conceptual Model](figures/Framework.png)
+**Figure 1.** Conceptual model of school nutrition policy impacts. The diagram illustrates key variables influencing student health and learning outcomes in the context of school meal interventions. Variables are color-coded by type: management actions (blue) represent components that can be directly modified by policy (e.g. canteen change, nutrition lessons); costs (brown) reflect resource needs for implementation; risks (pink) represent contextual or behavioral barriers such as off-campus consumption or food culture and advertising; and benefits (green) are the desired outcomes, including on-campus consumption, student health, and student learning. Arrows indicate hypothesized causal relationships, with thicker arrows denoting stronger influence.
 
 ## Literure and policy review
 
-we performed a review of policy and literature documents. Here we load the data resulting from the literature and policy review.
+We performed a review of policy and literature documents and saved the text of the reviews together with the bib files of both the literature and policy review.
 
 ```{r load-texts, warning=FALSE}
 # Load .txt files
@@ -68,7 +70,7 @@ bib_texts_literature <- tolower(sapply(bib_literature, function(x) {
 
 # Algorithmic support
 
-To compare our conceptual model to the existing literature, the government policy documents and a qualitative assessment we first the corpus search for key terms.
+To compare our conceptual model to the existing literature, the government policy documents and our qualitative assessment we search the corpus of each for key terms.
 
 ## food_tech_training
 
@@ -292,9 +294,9 @@ search_terms <- list(
 
 ```
 
-## Check Text Hits
+## Compare model and reviews
 
-We created a comparison matrix to compare results of the literature and policy review. 
+We created a comparison matrix to compare results of the literature and policy review and check whether we can consider them to provide either "Strong", "Moderate", "Weak", or no evidence for our model. 
 
 ```{r check-function}
 check_hits <- function(search_terms, text) {
@@ -307,11 +309,6 @@ comparison_matrix <- data.frame(
   gov_review = sapply(search_terms, check_hits, text = paste(policy_text, collapse = " ")),
   lit_review = sapply(search_terms, check_hits, text = paste(literature_text, collapse = " "))
 )
-```
-
-A table summarizing the comparison
-
-```{r comparison_matrix}
 
 # Add numeric sum and evidence strength labels
 comparison_matrix$support_score <- rowSums(comparison_matrix[ , c("bib_data_policy", "gov_review", "bib_data_lit", "lit_review")])
@@ -342,7 +339,6 @@ knitr::kable(
 
 ```{r get_hits_by_bib}
 source("functions/get_hits_by_bib.R")
-
 literature_hits <- get_hits_by_bib(search_terms, bib_texts_literature)
 
 policy_hits <- get_hits_by_bib(search_terms, bib_texts_policy)
@@ -352,12 +348,11 @@ summary_hits <- data.frame(
   Policy_Count = sapply(policy_hits, length)
 )
 
-knitr::kable(summary_hits, caption = "Evidence Hits per Concept")
 ```
 
 ## Policy support for our model 
 
-In policy documents we found supporting evidence for the variables we expressed in our model:
+In policy documents we found mixed support for the variables we expressed in our model:
 
 - `r length(policy_hits$food_tech_training)` referencing **food tech training**.  
   `r if (length(policy_hits$food_tech_training) > 0) paste(paste0("@", policy_hits$food_tech_training), collapse = ", ") else ""`
@@ -432,12 +427,18 @@ In the literature we found supporting evidence for the variables we expressed in
 
 # Model update and Monte Carlo Simulation
 
-We take these findings into account and also talk to experts to update the model. 
+We took all these findings into account and also talked to experts to update the model. 
 
 ![Full conceptual Model](figures/Nutrition model.png)
-We ran the full model using Monte Carlo simulation to estimate the likely outcomes of different school nutrition policy configurations. 
+We ran the full model using Monte Carlo simulation to estimate the likely outcomes of different school nutrition policy configurations. All uncertain inputs were defined using probability distributions (e.g. truncated normal, beta, or uniform). Policy toggles, such as staff training and canteen monitoring, were included as binary variables with a 50% probability to simulate diverse configurations. This allowed exploration of combined and independent effects of policy elements.
+
+## Key Input Assumptions
+
+All model inputs were modeled probabilistically based on expert judgment and literature estimates. See the input file `inputs_school_policy.csv` for full details.
 
 The outputs include both health cost savings (e.g. avoided diagnoses and treatments) and economic return (net present value compared to the baseline). These are plotted below to visualize the decision space.
+
+The three outcomes tracked were, Economic Return (Net Present Value of policy vs. no policy), Health Cost Savings (avoided treatment and diagnosis costs), Cost per Student (total implementation cost per student). 
 
 ```{r monte_carlo, warning=FALSE}
 
@@ -460,6 +461,8 @@ simulation_result <- mcSimulation(
 We used a Monte Carlo simulation to estimate the economic and health outcomes of school meal policy interventions under uncertainty. We ran the model `r sum(numberOfModelRuns)` times to capture uncertainty across a wide range of possible scenarios. The results show that school policy interventions can offer both cost savings and improved student health. The model includes toggle variables to simulate the presence or absence of specific interventions, allowing us to identify which combinations of actions appear in the most efficient scenarios.
 
 # Pareto analysis
+
+The Pareto front includes simulations that are not outperformed in all objectives by any other scenario. These are the most efficient configurations—improvements in one outcome would require trade-offs in others.
 
 We then performed a multi-objective Pareto analysis across three dimensions: economic return (NPV), health cost savings, and cost per student.
 
@@ -496,17 +499,6 @@ sim_data <- data.frame(simulation_result$x, simulation_result$y[, c("decision_va
 # Get Pareto front
 pareto_3d <- pareto_filter_3d(sim_data, "decision_value", "health_cost_savings", "cost_per_student")
 
-```
-
-While outcomes vary, a subset of efficient policy configurations emerged that balance return on investment, health improvements, and implementation cost.
-
-To better understand what drives the most efficient outcomes, we compared the input variables for simulations on the Pareto frontier (non-dominated in terms of return, health impact, and cost) to those across all simulations.
-
-We compared the mean values of all input variables between the full simulation set and the Pareto-optimal subset. The variables with the greatest deviations help identify factors that characterize efficient policy configurations.
-
-The column Mean_Pareto shows the average value of each input among simulations on the Pareto front. Mean_All shows the average across the full set of model runs. The difference is summarized in Change_Pareto_vs_All, where a positive value suggests that higher values of that input are associated with better performance.
-
-```{r}
 # Combine flag to indicate Pareto-optimal points
 sim_data$on_pareto <- apply(sim_data[, c("decision_value", "health_cost_savings", "cost_per_student")], 1, function(pt) {
   any(apply(pareto_3d[, c("decision_value", "health_cost_savings", "cost_per_student")], 1, function(pf) all(pt == pf)))
@@ -515,44 +507,11 @@ sim_data$on_pareto <- apply(sim_data[, c("decision_value", "health_cost_savings"
 # Summarize means of input variables
 input_vars <- setdiff(colnames(simulation_result$x), c("decision_value", "health_cost_savings", "cost_per_student"))
 
-summary_table <- data.frame(
-  Variable = input_vars,
-  Mean_All = sapply(simulation_result$x[, input_vars], mean),
-  Mean_Pareto = sapply(sim_data[sim_data$on_pareto, input_vars], mean)
-)
-
-# Calculate relative difference
-summary_table$Change_Pareto_vs_All <- (summary_table$Mean_Pareto - summary_table$Mean_All) / summary_table$Mean_All * 100
-
-# Only the Pareto-optimal subset (those not dominated on all three outcome axes: NPV, health, cost).
-
-summary_table <- summary_table[order(-abs(summary_table$Change_Pareto_vs_All)), ]
-knitr::kable(summary_table, digits = 2, caption = "Input Trends in Pareto-Optimal Simulations")
-
 ```
 
-Plot Pareto optimal 
+## Plot Pareto optimal 
 
 ```{r}
-library(tidyr)
-library(ggplot2)
-
-# Add Pareto front indicator
-sim_data$Pareto <- ifelse(sim_data$on_pareto, "On Pareto Front", "Other")
-
-# Reshape for faceting
-sim_long <- sim_data %>%
-  select(decision_value, health_cost_savings, cost_per_student, Pareto) %>%
-  pivot_longer(
-    cols = c(health_cost_savings, cost_per_student),
-    names_to = "Outcome",
-    values_to = "Value"
-  )
-
-library(dplyr)
-library(tidyr)
-library(ggplot2)
-
 # Add Pareto label
 sim_data$Pareto <- ifelse(sim_data$on_pareto, "Pareto", "Other")
 
@@ -585,7 +544,7 @@ p1 <- ggplot(plot_data, aes(x = Economic, y = Health, color = Pareto)) +
     legend.position = "none",
     axis.text.x = element_blank(),
     axis.ticks.x = element_blank(),
-    axis.title. = element_blank()
+    axis.title.x = element_blank()
   )
 
 p2 <- ggplot(plot_data, aes(x = Economic, y = CostPerStudent, color = Pareto)) +
@@ -621,11 +580,41 @@ final_plot <- cowplot::plot_grid(
 
 final_plot
 
- ggsave("figures/Fig_Pareto.png", final_plot, width = 10, height = 7)
+ggsave("figures/Fig_Pareto.png", final_plot, width = 10, height = 7)
 ```
-The most efficient simulations (on the Pareto front) were characterized by higher values for variables related to staff nutrition training, physical activity effectiveness, and improved meal quality — suggesting these interventions play a key role in maximizing return and health benefits.
 
-Higher spending on staff training — especially for nutrition and physical activity — appears more often in efficient policy configurations. These costs are higher in Pareto-optimal simulations, suggesting such investments may lead to better economic and health returns.
+**Figure 2.** Pairwise comparison of policy outcomes. Each point is a simulation result. Red dots indicate simulations on the Pareto frontier (non-dominated). Panels show trade-offs between Economic Return, Health, and Cost per Student.
+
+While outcomes vary, a subset of efficient policy configurations emerged that balance return on investment, health improvements, and implementation cost.
+
+To better understand what drives the most efficient outcomes, we compared the input variables for simulations on the Pareto frontier (non-dominated in terms of return, health impact, and cost) to those across all simulations.
+
+We compared the mean values of all input variables between the full simulation set and the Pareto-optimal subset. The variables with the greatest deviations help identify factors that characterize efficient policy configurations.
+
+The column `Mean_Pareto` shows the average value of each input among simulations on the Pareto front. `Mean_All` shows the average across the full set of model runs. The difference is summarized in `Change_Pareto_vs_All`. It is the percent change from the average in the full dataset to the average in Pareto-optimal cases. Positive values mean the variable was higher on average in efficient cases, suggesting it's associated with good performance.
+
+```{r}
+
+summary_table <- data.frame(
+  Mean_All = sapply(simulation_result$x[, input_vars], mean),
+  Mean_Pareto = sapply(sim_data[sim_data$on_pareto, input_vars], mean)
+)
+
+# Calculate relative difference
+summary_table$Change_Pareto_vs_All <- (summary_table$Mean_Pareto - summary_table$Mean_All) / summary_table$Mean_All * 100
+
+# Only the Pareto-optimal subset (those not dominated on all three outcome axes: NPV, health, cost).
+
+summary_table <- summary_table[order(-abs(summary_table$Change_Pareto_vs_All)), ]
+knitr::kable(summary_table, digits = 2, caption = "Input Trends in Pareto-Optimal Simulations")
+
+```
+
+These top values indicate that Pareto-optimal simulations tend to have much higher nutrition training investments (suggesting this is a key lever for success), higher cost per diagnosis, which may allow more room for cost savings through prevention, more diagnoses prevented, showing effective health outcomes.
+
+Higher spending on staff training — especially for nutrition — appears more often in efficient policy configurations. These costs are higher in Pareto-optimal simulations, suggesting such investments may lead to better economic and health returns.
+
+Many Pareto-optimal scenarios involved combined interventions (e.g., both staff training and menu changes). This suggests that integrated policies—rather than isolated measures—may yield the most efficient outcomes.
 
 Diagnosis cost and reduction in diagnoses are both elevated in the Pareto front. This might reflect scenarios where interventions successfully reduce high-cost health events — meaning more expensive health systems create more room for cost-saving.
 
