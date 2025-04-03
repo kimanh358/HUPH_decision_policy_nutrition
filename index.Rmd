@@ -217,7 +217,7 @@ off_campus = c(
   "unregulated food sales", "open food access", 
   "snack carts near school", "neighborhood food environment", 
   "informal food sources", "out-of-school food access", 
-  "off-premises food", "community vendors near school"
+  "off-premises food", "community vendors near school", "outside venue"
 )
 ```
 
@@ -253,7 +253,8 @@ student_learning = c(
   "academic success", "educational attainment", 
   "classroom engagement", "learning readiness", 
   "mental focus", "academic participation", 
-  "nutrition and learning", "school-based academic improvement"
+  "nutrition and learning", "school-based academic improvement", 
+  "academic perfomance", "school perfomance", "student perfomance"
 )
 ```
 
