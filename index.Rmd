@@ -441,7 +441,6 @@ The outputs include both health cost savings (e.g. avoided diagnoses and treatme
 
 ```{r monte_carlo, warning=FALSE}
 
-
 source("functions/school_policy_function.R")
 # Load inputs and run simulation
 input_data <- estimate_read_csv("data/inputs_school_policy.csv")
