@@ -1,0 +1,57 @@
+variable,lower,median,upper,distribution,label
+number_of_years,5,,5,const,Number of years for policy simulation
+discount_rate,5,,12,posnorm,Discounting factor (lãi suất chiết khấu) (%)
+CV_value,0.1,,0.4,tnorm_0_1,Coefficient of variation for our school policy intervention (%)
+n_student,1000,,2000,posnorm,number of student in school 
+,,,,,
+disease_diagnosis_cost,0.001,,1,norm, spending for a student disease diagnosis visit to the doctor  (milion VND)
+n_reduce_disease_diagnosis,0.1,,2,posnorm,how many fewer diagnosis per student year with policy (million VND)
+disease_treatment_cost,0.001,,0.2,norm, spending for a student disease treatment  (million VND)
+n_reduce_disease_treatment,0.01,,1,posnorm,how many fewer treatment per student year with policy (million VND)
+baseline_disease_diagnosis,1,,6,posnorm,baseline number of visits per student per year
+baseline_disease_treatment,0.5,,2,posnorm,baseline number of treatments per student per year (some kind of medication)
+,,,,,
+training_costs_foodsafety_1st_year,5,,10,posnorm,spending for food safety training in 1st year (million VND)
+training_costs_foodsafety_annual,0.5,,7,posnorm,spending for annual food safety training (million VND)
+training_costs_nutrition_1st_year,5,,15,posnorm,spending for nutrition training in 1st year (million VND)
+training_costs_nutrition_annual,0.01,,15,posnorm,spending for annual nutrition training (million VND)
+training_costs_physical_activity_1st_year,5,,10,posnorm,spending for physical activity training in 1st year (million VND)
+training_costs_physical_activity_annual,0.01,,10,posnorm,spending for annual physical activity training (million VND)
+change_menu_costs_annual,5,,12,posnorm,spending for annual menu change (million VND)
+monitoring_canteen_cost,0.05,,5,posnorm,spending for mornitoring canteen (milicon VND)
+,,,,,
+unhealthy_schoolgate_food_risk,0.01,,0.5,tnorm_0_1,risk of unhealthy schoolgate food
+impact_risk_unhealthy_schoolgate_food,0.01,,0.2,tnorm_0_1,
+practice_school_management_board,0.01,,0.2,tnorm_0_1,"Practices of School management board about school meal ( ex: chosing lesson, food supplier...)"
+staff_knowledge_food_safety,0.01,,0.2,tnorm_0_1,Staff knowledge about food safety
+staff_knowledge_nutrition,0.01,,0.2,tnorm_0_1,Staff knowledge about nutrition
+health_lessons_class,0.01,,0.2,tnorm_0_1,Health lessons in class 
+food_safety_practices_staff,0.01,,0.2,tnorm_0_1,Staff practice about food safety
+meal_nutrition_practices_staff,0.01,,0.2,tnorm_0_1,Staff practice about nutrition
+school_meet_mealrequirement,0.01,,0.2,tnorm_0_1,School meet  Health Minister school meal requirement
+children_access_healthy_food,0.01,,0.2,tnorm_0_1,Children access  healthy food %
+children_consume_healthy_food,0.01,,0.2,tnorm_0_1,Children  consume healthy food %
+parents_monitor_school_meal_practices,0.01,,0.2,tnorm_0_1,Parent monitor school meal %
+resistance_existing_staff_belief,0.01,,0.2,tnorm_0_1,Resistance of existing staff belief %
+resistance_existing_staff_practices,0.01,,0.2,tnorm_0_1,% probability
+costs_exceed_budget,0.01,,0.2,tnorm_0_1,how much will it be reduced (%)
+teaching_time,0.01,,0.2,tnorm_0_1,teaching time in class (hours)
+resistance_child_preferences_attitude,0.01,,0.2,tnorm_0_1,Resistance of existing child preferences abt attitude
+unhealthy_school_gate_foods,0.01,,0.2,tnorm_0_1,Unhealthy school gate foods (%)
+canteen_selling_unhealthy_foods,0.01,,0.2,tnorm_0_1,Canteen sell other unhealthy foods (%)
+,,,,,
+nutrition_status_bmi_high,0.01,,0.2,tnorm_0_1,bmi is high (%)
+nutrition_status_bmi_low,0.01,,0.2,tnorm_0_1,bmi is low 
+food_access_and_consumption_threshold,0.5,,0.8,tnorm_0_1,ngưỡng 
+food_access_and_consumption_bmi_improve,0.01,,0.3,tnorm_0_1, bmi improve if children access healthy food (%)
+food_access_and_consumption_reduce_overweight,0.01,,0.1,tnorm_0_1,% of reduction 
+food_access_and_consumption_reduce_underweight,0.01,,0.1,tnorm_0_1,
+,,,,,
+unhealthy_canteen_foods,0.01,,0.1,tnorm_0_1,
+unhealthy_food_exposure,0.01,,0.1,tnorm_0_1,
+advertisement_exposure,0.01,,0.1,tnorm_0_1,
+peer_influence_factor,0.01,,0.1,tnorm_0_1,
+physical_activity_program_effective,0.2,,0.6,tnorm_0_1,
+physical_activity_effect,0.01,,0.1,tnorm_0_1,
+student_performance_improvement,0.01,,0.1,tnorm_0_1,
+value_of_learning_per_student,1,,10,posnorm,
