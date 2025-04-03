@@ -457,14 +457,7 @@ simulation_result <- mcSimulation(
 
 ```
 
-The model was run `r sum(numberOfModelRuns)` times to capture uncertainty across a wide range of possible scenarios.
-
-We used a Monte Carlo simulation to estimate the economic and health outcomes of school meal policy interventions under uncertainty. The Monte Carlo simulation results show that school policy interventions can offer both cost savings and improved student health. The model includes toggle variables to simulate the presence or absence of specific interventions, allowing us to identify which combinations of actions appear in the most efficient scenarios.
-
-While outcomes vary, a subset of efficient policy configurations emerged that balance return on investment, health improvements, and implementation cost.
-
-These findings provide a transparent, evidence-based decision-support tool for policymakers to weigh trade-offs and identify promising school meal strategies under uncertainty.
-
+We used a Monte Carlo simulation to estimate the economic and health outcomes of school meal policy interventions under uncertainty. We ran the model `r sum(numberOfModelRuns)` times to capture uncertainty across a wide range of possible scenarios. The results show that school policy interventions can offer both cost savings and improved student health. The model includes toggle variables to simulate the presence or absence of specific interventions, allowing us to identify which combinations of actions appear in the most efficient scenarios.
 
 # Pareto analysis
 
@@ -475,7 +468,7 @@ The resulting Pareto front reveals a clear trade-off curve. Policy configuration
 These findings highlight the existence of efficient policy options that cannot be improved in one objective without sacrificing another. Decision-makers can use this front to choose policies based on priorities — e.g., maximizing health benefits under a fixed cost constraint, or seeking the best ROI with acceptable health impacts.
 
 ```{r}
-# Assume sim_result is the mcSimulation result
+
 sim_data <- data.frame(simulation_result$x, simulation_result$y[1:3])  # Extract all output values
 
 # Extended Pareto filter for 3D (non-dominated solutions across 3 objectives)
@@ -497,40 +490,21 @@ pareto_filter_3d <- function(df, obj1, obj2, obj3) {
   return(df[pareto, ])
 }
 
-# Prepare full data (assuming 'cost_per_student' is in simulation_result$y)
+# Prepare full data 
 sim_data <- data.frame(simulation_result$x, simulation_result$y[, c("decision_value", "health_cost_savings", "cost_per_student")])
 
 # Get Pareto front
 pareto_3d <- pareto_filter_3d(sim_data, "decision_value", "health_cost_savings", "cost_per_student")
 
-library(plotly)
-
-plot_ly(sim_data, x = ~decision_value, y = ~health_cost_savings, z = ~cost_per_student,
-        type = "scatter3d", mode = "markers", marker = list(size = 3, color = 'gray'),
-        name = "All Simulations") %>%
-  add_trace(data = pareto_3d,
-            x = ~decision_value, y = ~health_cost_savings, z = ~cost_per_student,
-            mode = "markers", type = "scatter3d",
-            marker = list(color = "red", size = 4),
-            name = "Pareto Front") %>%
-  layout(
-    title = "3D Pareto Frontier: Economic Return vs Health vs Cost/Student",
-    scene = list(
-      xaxis = list(title = "NPV (Economic Return)"),
-      yaxis = list(title = "Health Cost Savings"),
-      zaxis = list(title = "Cost per Student (VND)")
-    )
-  )
-
-
 ```
+
+While outcomes vary, a subset of efficient policy configurations emerged that balance return on investment, health improvements, and implementation cost.
 
 To better understand what drives the most efficient outcomes, we compared the input variables for simulations on the Pareto frontier (non-dominated in terms of return, health impact, and cost) to those across all simulations.
 
 We compared the mean values of all input variables between the full simulation set and the Pareto-optimal subset. The variables with the greatest deviations help identify factors that characterize efficient policy configurations.
 
 The column Mean_Pareto shows the average value of each input among simulations on the Pareto front. Mean_All shows the average across the full set of model runs. The difference is summarized in Change_Pareto_vs_All, where a positive value suggests that higher values of that input are associated with better performance.
-
 
 ```{r}
 # Combine flag to indicate Pareto-optimal points
@@ -556,6 +530,8 @@ summary_table <- summary_table[order(-abs(summary_table$Change_Pareto_vs_All)), 
 knitr::kable(summary_table, digits = 2, caption = "Input Trends in Pareto-Optimal Simulations")
 
 ```
+
+Plot Pareto optimal 
 
 ```{r}
 library(tidyr)
@@ -587,9 +563,6 @@ pairwise_data <- bind_rows(
   sim_data %>% select(x = health_cost_savings, y = cost_per_student, Pareto) %>% mutate(Pair = "Health vs Cost/Student")
 )
 
-
-library(ggplot2)
-library(cowplot)
 
 # Rename columns for readability
 plot_data <- sim_data %>%
@@ -646,13 +619,9 @@ final_plot <- cowplot::plot_grid(
   ncol = 2, rel_widths = c(1, 1)
 )
 
-# To save
-# ggsave("figures/pareto_2x2_panel.png", final_plot, width = 10, height = 7)
-
 final_plot
 
-
-
+ ggsave("figures/Fig_Pareto.png", final_plot, width = 10, height = 7)
 ```
 The most efficient simulations (on the Pareto front) were characterized by higher values for variables related to staff nutrition training, physical activity effectiveness, and improved meal quality — suggesting these interventions play a key role in maximizing return and health benefits.
 
