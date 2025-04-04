@@ -459,15 +459,15 @@ simulation_result <- mcSimulation(
 
 ```
 
-We used a Monte Carlo simulation to estimate the NPVReturn and health outcomes of school meal policy interventions under uncertainty. We ran the model `r sum(numberOfModelRuns)` times to capture uncertainty across a wide range of possible scenarios. The results show that school policy interventions can offer both cost savings and improved student health. The model includes toggle variables to simulate the presence or absence of specific interventions, allowing us to identify which combinations of actions appear in the most efficient scenarios.
+We used a Monte Carlo simulation to estimate the economic and health outcomes of school meal policy interventions under uncertainty. We ran the model 10,000 times to capture uncertainty across a wide range of possible scenarios. The results show that school policy interventions can offer both cost savings and improved student health. The model includes toggle variables to simulate the presence or absence of specific interventions, allowing us to identify which combinations of actions appear in the most efficient scenarios.
 
 # Pareto analysis
 
 The Pareto front includes simulations that are not outperformed in all objectives by any other scenario. These are the most efficient configurations—improvements in one outcome would require trade-offs in others.
 
-We then performed a multi-objective Pareto analysis across three dimensions: NPVReturn return (NPV), health cost savings, and cost per student.
+We then performed a multi-objective Pareto analysis across three dimensions: The economic return in the form of a discounted Net Present Value (NPV), health benefits and education benefits.
 
-The resulting Pareto front reveals a clear trade-off curve. Policy configurations that maximize NPVReturn return do not necessarily maximize health benefits or minimize per-student costs. Conversely, policies with strong health outcomes can come at higher per-student costs or lower net present values.
+The resulting Pareto front reveals a clear trade-off curve. Policy configurations that maximize economic return do not necessarily maximize health benefits or minimize per-student costs. Conversely, policies with strong health outcomes can come at higher per-student costs or lower net present values.
 
 These findings highlight the existence of efficient policy options that cannot be improved in one objective without sacrificing another. Decision-makers can use this front to choose policies based on priorities — e.g., maximizing health benefits under a fixed cost constraint, or seeking the best ROI with acceptable health impacts.
 
@@ -586,6 +586,40 @@ ggsave("figures/Fig_Pareto.png", final_plot, width = 10, height = 7)
 ```
 
 **Figure 2.** Pairwise comparison of policy outcomes. Each point is a simulation result. Red dots indicate simulations on the Pareto frontier (non-dominated). Panels show trade-offs between NPVReturn Return, Health, and Cost per Student.
+
+## Management options 
+
+```{r}
+toggle_vars <- c(
+  "use_staff_training_foodsafety",
+  "use_staff_training_nutrition",
+  "use_physical_activity",
+  "use_menu_change_rda",
+  "use_limit_unhealthy_canteen_food"
+)
+
+summary_table <- data.frame(
+  Mean_All = sapply(simulation_result$x[, toggle_vars], mean),
+  Mean_Pareto = sapply(sim_data[sim_data$on_pareto, toggle_vars], mean)
+)
+
+summary_table$Change_Pareto_vs_All <- (summary_table$Mean_Pareto - summary_table$Mean_All) / summary_table$Mean_All * 100
+
+summary_table <- summary_table[order(-abs(summary_table$Change_Pareto_vs_All)), ]
+
+rownames(summary_table) <- c(
+  "Food Safety Training",
+  "Nutrition Training",
+  "Physical Activity Training",
+  "Menu Change to Meet RDA",
+  "Limit Unhealthy Canteen Food"
+)
+
+knitr::kable(summary_table, digits = 2, caption = "Toggle Settings in Pareto-Optimal Simulations")
+
+```
+
+## General variable assessment
 
 While outcomes vary, a subset of efficient policy configurations emerged that balance return on investment, health improvements, and implementation cost.
 
