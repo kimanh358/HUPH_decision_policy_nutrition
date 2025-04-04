@@ -2,20 +2,20 @@
 
 # modeling from intervention → practice → food environment → health → economic outcome
 
-# make variables for testing our model (only for construction)
-library(decisionSupport)
-
-make_variables <- function(est, n = 1)
-  #take one time #
-{
-  x <- decisionSupport::random(rho = est, n = n)
-  for (i in colnames(x))
-    assign(i, as.numeric(x[1, i]), envir = .GlobalEnv)
-}
-
-#Just one run#
-make_variables(decisionSupport::estimate_read_csv(paste
-("data/inputs_school_policy.csv", sep ="")))
+# # make variables for testing our model (only for construction)
+# library(decisionSupport)
+# 
+# make_variables <- function(est, n = 1)
+#   #take one time #
+# {
+#   x <- decisionSupport::random(rho = est, n = n)
+#   for (i in colnames(x))
+#     assign(i, as.numeric(x[1, i]), envir = .GlobalEnv)
+# }
+# 
+# #Just one run#
+# make_variables(decisionSupport::estimate_read_csv(paste
+# ("data/inputs_school_policy.csv", sep ="")))
 
 # Model function
 school_policy_function <- function(
