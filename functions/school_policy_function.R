@@ -106,23 +106,19 @@ school_policy_function <- function(
   policy_benefit <- vv(annual_policy_benefit, var_CV = CV_value, n = number_of_years)
   
   # Do-nothing (baseline) cost and benefit estimation from health outcomes only
-  annual_no_policy_costs <- baseline_health_costs / number_of_years
-  annual_no_policy_benefit <- education_benefit_baseline
-  no_policy_result <- vv(annual_no_policy_benefit - annual_no_policy_costs, var_CV = CV_value, n = number_of_years)
+  annual_no_policy_costs <- vv(baseline_health_costs, var_CV = CV_value, n = number_of_years)
+  annual_no_policy_benefit <- vv(education_benefit_baseline, var_CV = CV_value, n = number_of_years)
+  no_policy_result <- annual_no_policy_benefit - annual_no_policy_costs
   
   # Net Present Values
   npv_policy <- discount(policy_benefit - policy_cost, discount_rate, TRUE)
   npv_no_policy <- discount(no_policy_result, discount_rate, TRUE)
   
-  cost_per_student <- sum(policy_cost) / n_student
-  
-  health_cost_savings <- policy_health_costs - baseline_health_costs
-  
   return(
     list(
       decision_value = npv_policy - npv_no_policy,
-      health_cost_savings = health_cost_savings,
-      cost_per_student = cost_per_student
+      net_health_benefit = net_health_benefit,
+      education_benefit = education_benefit
     )
   )
 }

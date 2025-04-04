@@ -131,17 +131,17 @@ staff_skill = c(
 
 ## intervention_cost
 
-Economic factors influencing the feasibility, sustainability, and scalability of school-based nutrition interventions, including direct costs and systemic financial constraints.
+NPVReturn factors influencing the feasibility, sustainability, and scalability of school-based nutrition interventions, including direct costs and systemic financial constraints.
 
 ```{r intervention_cost}
 intervention_cost = c(
   "intervention cost", "program cost", "implementation cost", 
   "financial feasibility", "budget constraint", "school finance", 
-  "economic barrier", "affordability", "funding shortfall", 
+  "NPVReturn barrier", "affordability", "funding shortfall", 
   "resource allocation", "cost-effectiveness", "cost-benefit", 
   "financial sustainability", "school budget", "budget limitation", 
   "fiscal capacity", "operational cost", "nutrition program funding", 
-  "financial barrier", "economic feasibility", "budget planning", 
+  "financial barrier", "NPVReturn feasibility", "budget planning", 
   "cost per child", "nutrition intervention expenses"
 )
 ```
@@ -437,9 +437,9 @@ We ran the full model using Monte Carlo simulation to estimate the likely outcom
 
 All model inputs were modeled probabilistically based on expert judgment and literature estimates. See the input file `inputs_school_policy.csv` for full details.
 
-The outputs include both health cost savings (e.g. avoided diagnoses and treatments) and economic return (net present value compared to the baseline). These are plotted below to visualize the decision space.
+The outputs include both health cost savings (e.g. avoided diagnoses and treatments) and NPVReturn return (net present value compared to the baseline). These are plotted below to visualize the decision space.
 
-The three outcomes tracked were, Economic Return (Net Present Value of policy vs. no policy), Health Cost Savings (avoided treatment and diagnosis costs), Cost per Student (total implementation cost per student). 
+The three outcomes tracked were, NPVReturn Return (Net Present Value of policy vs. no policy), Health Cost Savings (avoided treatment and diagnosis costs), Cost per Student (total implementation cost per student). 
 
 ```{r monte_carlo, warning=FALSE}
 
@@ -459,15 +459,15 @@ simulation_result <- mcSimulation(
 
 ```
 
-We used a Monte Carlo simulation to estimate the economic and health outcomes of school meal policy interventions under uncertainty. We ran the model `r sum(numberOfModelRuns)` times to capture uncertainty across a wide range of possible scenarios. The results show that school policy interventions can offer both cost savings and improved student health. The model includes toggle variables to simulate the presence or absence of specific interventions, allowing us to identify which combinations of actions appear in the most efficient scenarios.
+We used a Monte Carlo simulation to estimate the NPVReturn and health outcomes of school meal policy interventions under uncertainty. We ran the model `r sum(numberOfModelRuns)` times to capture uncertainty across a wide range of possible scenarios. The results show that school policy interventions can offer both cost savings and improved student health. The model includes toggle variables to simulate the presence or absence of specific interventions, allowing us to identify which combinations of actions appear in the most efficient scenarios.
 
 # Pareto analysis
 
 The Pareto front includes simulations that are not outperformed in all objectives by any other scenario. These are the most efficient configurations—improvements in one outcome would require trade-offs in others.
 
-We then performed a multi-objective Pareto analysis across three dimensions: economic return (NPV), health cost savings, and cost per student.
+We then performed a multi-objective Pareto analysis across three dimensions: NPVReturn return (NPV), health cost savings, and cost per student.
 
-The resulting Pareto front reveals a clear trade-off curve. Policy configurations that maximize economic return do not necessarily maximize health benefits or minimize per-student costs. Conversely, policies with strong health outcomes can come at higher per-student costs or lower net present values.
+The resulting Pareto front reveals a clear trade-off curve. Policy configurations that maximize NPVReturn return do not necessarily maximize health benefits or minimize per-student costs. Conversely, policies with strong health outcomes can come at higher per-student costs or lower net present values.
 
 These findings highlight the existence of efficient policy options that cannot be improved in one objective without sacrificing another. Decision-makers can use this front to choose policies based on priorities — e.g., maximizing health benefits under a fixed cost constraint, or seeking the best ROI with acceptable health impacts.
 
@@ -495,19 +495,19 @@ pareto_filter_3d <- function(df, obj1, obj2, obj3) {
 }
 
 # Prepare full data 
-# costs per student are calculated as a minimization of the costs per student cost_per_student <- 1-(sum(policy_cost) / n_student)
-sim_data <- data.frame(simulation_result$x, simulation_result$y[, c("decision_value", "health_cost_savings", "cost_per_student")])
+# costs per student are calculated as a minimization of the costs per student education_benefit <- 1-(sum(policy_cost) / n_student)
+sim_data <- data.frame(simulation_result$x, simulation_result$y[, c("decision_value", "net_health_benefit", "education_benefit")])
 
 # Get Pareto front
-pareto_3d <- pareto_filter_3d(sim_data, "decision_value", "health_cost_savings", "cost_per_student")
+pareto_3d <- pareto_filter_3d(sim_data, "decision_value", "net_health_benefit", "education_benefit")
 
 # Combine flag to indicate Pareto-optimal points
-sim_data$on_pareto <- apply(sim_data[, c("decision_value", "health_cost_savings", "cost_per_student")], 1, function(pt) {
-  any(apply(pareto_3d[, c("decision_value", "health_cost_savings", "cost_per_student")], 1, function(pf) all(pt == pf)))
+sim_data$on_pareto <- apply(sim_data[, c("decision_value", "net_health_benefit", "education_benefit")], 1, function(pt) {
+  any(apply(pareto_3d[, c("decision_value", "net_health_benefit", "education_benefit")], 1, function(pf) all(pt == pf)))
 })
 
 # Summarize means of input variables
-input_vars <- setdiff(colnames(simulation_result$x), c("decision_value", "health_cost_savings", "cost_per_student"))
+input_vars <- setdiff(colnames(simulation_result$x), c("decision_value", "net_health_benefit", "education_benefit"))
 
 ```
 
@@ -519,28 +519,28 @@ sim_data$Pareto <- ifelse(sim_data$on_pareto, "Pareto", "Other")
 
 # Create long format for all 3 outcomes
 pairwise_data <- bind_rows(
-  sim_data %>% select(x = decision_value, y = health_cost_savings, Pareto) %>% mutate(Pair = "NPV vs Health"),
-  sim_data %>% select(x = decision_value, y = cost_per_student, Pareto) %>% mutate(Pair = "NPV vs Cost/Student"),
-  sim_data %>% select(x = health_cost_savings, y = cost_per_student, Pareto) %>% mutate(Pair = "Health vs Cost/Student")
+  sim_data %>% select(x = decision_value, y = net_health_benefit, Pareto) %>% mutate(Pair = "NPV vs Health"),
+  sim_data %>% select(x = decision_value, y = education_benefit, Pareto) %>% mutate(Pair = "NPV vs Education"),
+  sim_data %>% select(x = net_health_benefit, y = education_benefit, Pareto) %>% mutate(Pair = "Health vs Education")
 )
 
 
 # Rename columns for readability
 plot_data <- sim_data %>%
   dplyr::rename(
-    Economic = decision_value,
-    Health = health_cost_savings,
-    CostPerStudent = cost_per_student
+    NPVReturn = decision_value,
+    Health = net_health_benefit,
+    EduBenefit = education_benefit
   )
 
 # Define color palette
 pareto_colors <- c("Other" = "gray", "Pareto" = "red")
 
 # Individual plots
-p1 <- ggplot(plot_data, aes(x = Economic, y = Health, color = Pareto)) +
+p1 <- ggplot(plot_data, aes(x = NPVReturn, y = Health, color = Pareto)) +
   geom_point(size = 1.5, alpha = 0.6) +
   scale_color_manual(values = pareto_colors) +
-  labs(x = "NPV (million VND)", y = "Health savings (million VND)") +
+  labs(x = "NPV (million VND)", y = "Health benefit (million VND)") +
   theme_minimal(base_size = 12) +
     theme(
     legend.position = "none",
@@ -549,17 +549,17 @@ p1 <- ggplot(plot_data, aes(x = Economic, y = Health, color = Pareto)) +
     axis.title.x = element_blank()
   )
 
-p2 <- ggplot(plot_data, aes(x = Economic, y = CostPerStudent, color = Pareto)) +
+p2 <- ggplot(plot_data, aes(x = NPVReturn, y = EduBenefit, color = Pareto)) +
   geom_point(size = 1.5, alpha = 0.6) +
   scale_color_manual(values = pareto_colors) +
-  labs(x = "NPV (million VND)", y = "Cost per Student (million VND)") +
+  labs(x = "NPV (million VND)", y = "Education benefit (million VND)") +
   theme_minimal(base_size = 12) +
   theme(legend.position = "none")
 
-p3 <- ggplot(plot_data, aes(x = Health, y = CostPerStudent, color = Pareto)) +
+p3 <- ggplot(plot_data, aes(x = Health, y = EduBenefit, color = Pareto)) +
   geom_point(size = 1.5, alpha = 0.6) +
   scale_color_manual(values = pareto_colors) +
-  labs(x = "Health savings (million VND)", y = "Cost per Student (million VND)") +
+  labs(x = "Health benefit (million VND)", y = "Education benefit (million VND)") +
   theme_minimal(base_size = 12) +
   theme(
     legend.position = "none",
@@ -585,7 +585,7 @@ final_plot
 ggsave("figures/Fig_Pareto.png", final_plot, width = 10, height = 7)
 ```
 
-**Figure 2.** Pairwise comparison of policy outcomes. Each point is a simulation result. Red dots indicate simulations on the Pareto frontier (non-dominated). Panels show trade-offs between Economic Return, Health, and Cost per Student.
+**Figure 2.** Pairwise comparison of policy outcomes. Each point is a simulation result. Red dots indicate simulations on the Pareto frontier (non-dominated). Panels show trade-offs between NPVReturn Return, Health, and Cost per Student.
 
 While outcomes vary, a subset of efficient policy configurations emerged that balance return on investment, health improvements, and implementation cost.
 
@@ -614,7 +614,7 @@ knitr::kable(summary_table, digits = 2, caption = "Input Trends in Pareto-Optima
 
 These top values indicate that Pareto-optimal simulations tend to have much higher nutrition training investments (suggesting this is a key lever for success), higher cost per diagnosis, which may allow more room for cost savings through prevention, more diagnoses prevented, showing effective health outcomes.
 
-Higher spending on staff training — especially for nutrition — appears more often in efficient policy configurations. These costs are higher in Pareto-optimal simulations, suggesting such investments may lead to better economic and health returns.
+Higher spending on staff training — especially for nutrition — appears more often in efficient policy configurations. These costs are higher in Pareto-optimal simulations, suggesting such investments may lead to better NPVReturn and health returns.
 
 Many Pareto-optimal scenarios involved combined interventions (e.g., both staff training and menu changes). This suggests that integrated policies—rather than isolated measures—may yield the most efficient outcomes.
 
