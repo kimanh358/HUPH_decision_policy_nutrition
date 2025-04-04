@@ -495,6 +495,7 @@ pareto_filter_3d <- function(df, obj1, obj2, obj3) {
 }
 
 # Prepare full data 
+# costs per student are calculated as a minimization of the costs per student cost_per_student <- 1-(sum(policy_cost) / n_student)
 sim_data <- data.frame(simulation_result$x, simulation_result$y[, c("decision_value", "health_cost_savings", "cost_per_student")])
 
 # Get Pareto front
@@ -539,7 +540,7 @@ pareto_colors <- c("Other" = "gray", "Pareto" = "red")
 p1 <- ggplot(plot_data, aes(x = Economic, y = Health, color = Pareto)) +
   geom_point(size = 1.5, alpha = 0.6) +
   scale_color_manual(values = pareto_colors) +
-  labs(x = "Economic (million VND)", y = "Health (million VND)") +
+  labs(x = "NPV (million VND)", y = "Health savings (million VND)") +
   theme_minimal(base_size = 12) +
     theme(
     legend.position = "none",
@@ -551,14 +552,14 @@ p1 <- ggplot(plot_data, aes(x = Economic, y = Health, color = Pareto)) +
 p2 <- ggplot(plot_data, aes(x = Economic, y = CostPerStudent, color = Pareto)) +
   geom_point(size = 1.5, alpha = 0.6) +
   scale_color_manual(values = pareto_colors) +
-  labs(x = "Economic (million VND)", y = "Cost per Student (million VND)") +
+  labs(x = "NPV (million VND)", y = "Cost per Student (million VND)") +
   theme_minimal(base_size = 12) +
   theme(legend.position = "none")
 
 p3 <- ggplot(plot_data, aes(x = Health, y = CostPerStudent, color = Pareto)) +
   geom_point(size = 1.5, alpha = 0.6) +
   scale_color_manual(values = pareto_colors) +
-  labs(x = "Health (million VND)", y = "Cost per Student (million VND)") +
+  labs(x = "Health savings (million VND)", y = "Cost per Student (million VND)") +
   theme_minimal(base_size = 12) +
   theme(
     legend.position = "none",
