@@ -31,8 +31,8 @@ school_policy_function <- function(
     training_costs_foodsafety_annual <- 0
     training_costs_foodsafety_1st_year <- 0
   } else {
-    n_reduce_disease_diagnosis <- n_reduce_disease_diagnosis * staff_training_foodsafety_nutrition_effect
-    n_reduce_disease_treatment <- n_reduce_disease_treatment * staff_training_foodsafety_nutrition_effect
+    n_reduce_disease_diagnosis <- n_reduce_disease_diagnosis * (1 + staff_training_foodsafety_nutrition_effect)
+    n_reduce_disease_treatment <- n_reduce_disease_treatment * (1 + staff_training_foodsafety_nutrition_effect)
   }
   
   # Staff training: Nutrition
@@ -41,8 +41,8 @@ school_policy_function <- function(
     training_costs_nutrition_annual <- 0
     training_costs_nutrition_1st_year <- 0
   } else {
-    student_performance_improvement <- student_performance_improvement * staff_training_nutrition_effect
-    staff_knowledge_nutrition <- staff_knowledge_nutrition * staff_training_nutrition_effect
+    student_performance_improvement <- student_performance_improvement * (1 + staff_training_nutrition_effect)
+    staff_knowledge_nutrition <- staff_knowledge_nutrition * (1 + staff_training_nutrition_effect)
   }
   
   # Physical education
@@ -51,10 +51,10 @@ school_policy_function <- function(
     training_costs_physical_activity_annual <- 0
     training_costs_physical_activity_1st_year <- 0
   } else {
-    student_performance_improvement <- student_performance_improvement * physical_activity_effect
-    n_reduce_disease_diagnosis <- n_reduce_disease_diagnosis * physical_activity_effect
-    n_reduce_disease_treatment <- n_reduce_disease_treatment * physical_activity_effect
-    staff_knowledge_food_safety <- staff_knowledge_food_safety * physical_activity_effect
+    student_performance_improvement <- student_performance_improvement * (1 + physical_activity_effect)
+    n_reduce_disease_diagnosis <- n_reduce_disease_diagnosis * (1 + physical_activity_effect)
+    n_reduce_disease_treatment <- n_reduce_disease_treatment * (1 + physical_activity_effect)
+    staff_knowledge_food_safety <- staff_knowledge_food_safety * (1 + physical_activity_effect)
   }
   
   # Menu change to meet RDA
@@ -62,9 +62,11 @@ school_policy_function <- function(
   if (!use_menu_change_rda) {
     change_menu_costs_annual <- 0
   } else {
-    n_reduce_disease_diagnosis <- n_reduce_disease_diagnosis * menu_change_rda_nutrition_effect
-    n_reduce_disease_treatment <- n_reduce_disease_treatment * menu_change_rda_nutrition_effect
-    unhealthy_canteen_foods <- unhealthy_canteen_foods * physical_activity_effect
+    n_reduce_disease_diagnosis <- n_reduce_disease_diagnosis * (1 + menu_change_rda_nutrition_effect)
+    n_reduce_disease_treatment <- n_reduce_disease_treatment * (1 + menu_change_rda_nutrition_effect)
+    unhealthy_canteen_foods <- unhealthy_canteen_foods *(1 +  menu_change_rda_nutrition_effect)
+    children_consume_healthy_food <- children_consume_healthy_food * (1 + menu_change_rda_nutrition_effect)
+    children_access_healthy_food <- children_access_healthy_food * (1 + menu_change_rda_nutrition_effect)
   }
   
   # Limit unhealthy canteen food
@@ -72,9 +74,11 @@ school_policy_function <- function(
   if (!use_limit_unhealthy_canteen_food) {
     monitoring_canteen_cost <- 0
   } else {
-    n_reduce_disease_diagnosis <- n_reduce_disease_diagnosis * limit_unhealthy_canteen_food_nutrition_effect
-    n_reduce_disease_treatment <- n_reduce_disease_treatment * limit_unhealthy_canteen_food_nutrition_effect
-    unhealthy_canteen_foods <- unhealthy_canteen_foods * physical_activity_effect
+    n_reduce_disease_diagnosis <- n_reduce_disease_diagnosis * (1 + limit_unhealthy_canteen_food_nutrition_effect)
+    n_reduce_disease_treatment <- n_reduce_disease_treatment * (1 + limit_unhealthy_canteen_food_nutrition_effect)
+    unhealthy_canteen_foods <- unhealthy_canteen_foods * (1 + limit_unhealthy_canteen_food_nutrition_effect)
+    children_consume_healthy_food <- children_consume_healthy_food * (1 + limit_unhealthy_canteen_food_nutrition_effect)
+    children_access_healthy_food <- children_access_healthy_food * (1 + limit_unhealthy_canteen_food_nutrition_effect)
   }
   
   # Composite indicators (simplified)
@@ -98,7 +102,35 @@ school_policy_function <- function(
     bmi_low <- nutrition_status_bmi_low
   }
   
-  disease_burden <- bmi_high - bmi_low
+  # Both high and low BMI levels are associated with increased disease risk
+  
+  # Initialize multipliers for diagnosis and treatment
+  diagnosis_multiplier <- 1
+  treatment_multiplier <- 1
+  
+  # Overweight increases risk
+  if (bmi_high > overweight_threshold) {
+    excess_overweight <- bmi_high - overweight_threshold
+    diagnosis_multiplier <- diagnosis_multiplier + nutrition_status_bmi_high * 
+      overweight_diagnosis_risk_multiplier
+    treatment_multiplier <- treatment_multiplier + nutrition_status_bmi_high * 
+      overweight_treatment_risk_multiplier
+  }
+  
+  # Underweight increases risk
+  if (bmi_low > underweight_threshold) {
+    excess_underweight <- bmi_low - underweight_threshold
+    diagnosis_multiplier <- diagnosis_multiplier + excess_underweight * 
+      underweight_diagnosis_risk_multiplier
+    treatment_multiplier <- treatment_multiplier + excess_underweight * 
+      underweight_treatment_risk_multiplier
+  }
+  
+  # Adjust baseline disease burden based on BMI-related risk
+  baseline_disease_diagnosis <- baseline_disease_diagnosis * 
+    diagnosis_multiplier
+  baseline_disease_treatment <- baseline_disease_treatment * 
+    treatment_multiplier
   
   # Health costs with and without policy
   # Health utility  ####
@@ -106,7 +138,6 @@ school_policy_function <- function(
   # How many fewer health events per VND spent?
   # A discussion among school nurses indicated that approximately 3-4% of the student body visits the school nurse each day
   # 50% to 70% of nurse visits result in some form of treatment or medication
-  baseline_disease_diagnosis <- baseline_disease_diagnosis * (1+disease_burden)
   
   baseline_health_costs <- ((baseline_disease_diagnosis * disease_diagnosis_cost) + 
     (baseline_disease_treatment * disease_treatment_cost)) * n_student
