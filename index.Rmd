@@ -619,6 +619,19 @@ knitr::kable(summary_table, digits = 2, caption = "Toggle Settings in Pareto-Opt
 
 ```
 
+
+Pareto-optimal simulations most often included food safety, nutrition, and physical activity training, highlighting the value of capacity building among school staff. These interventions likely improved implementation fidelity, enhanced student health and performance, and kept costs within budget. Menu adjustments and limiting unhealthy foods were less frequently decisive but may play a complementary role in well-rounded programs.
+
+Food Safety Training (+34.5%)  was the most frequently included intervention in Pareto-optimal runs. Improving hygiene and food safety practices has strong downstream effects—likely through reduced illness and associated costs—making it a high-value, cost-effective policy component.
+
+Nutrition Training (+28.6%) was often included in optimal solutions, supporting improved food-related decision-making. The inclusion of this training can enhance staff capacity, contributing to better implementation of dietary guidelines and positive health outcomes.
+
+ Physical Activity Training (+28.0%) appears in nearly a third more optimal scenarios than in general. This suggests a synergistic benefit with nutrition interventions, improving both BMI-related health outcomes and student performance, strengthening the overall impact of the program.
+
+Menu Change to Meet RDA (+14.1%) can contribute directly to better nutrient intake and reductions in under-/overweight rates. While not the most dominant driver, it appears to add value when combined with training interventions.
+
+Limit Unhealthy Canteen Food (+6.5%) had the least differential effect, suggesting that while it may contribute to outcomes, its impact alone may be limited or context-dependent since unhealthy foods in the canteen were not a major baseline problem.
+
 ## General variable assessment
 
 While outcomes vary, a subset of efficient policy configurations emerged that balance return on investment, health improvements, and implementation cost.
@@ -646,15 +659,16 @@ knitr::kable(summary_table, digits = 2, caption = "Input Trends in Pareto-Optima
 
 ```
 
-These top values indicate that Pareto-optimal simulations tend to have much higher nutrition training investments (suggesting this is a key lever for success), higher cost per diagnosis, which may allow more room for cost savings through prevention, more diagnoses prevented, showing effective health outcomes.
+Pareto-optimal simulations were characterized by higher health and educational returns, especially in contexts with greater initial disease burden and higher diagnosis costs. These scenarios achieved substantial reductions in treatment and diagnosis events, while maintaining cost efficiency and budget adherence. The findings support the effectiveness of preventive and educational interventions in school-based nutrition policies, particularly where baseline health risks are high.
 
-Higher spending on staff training — especially for nutrition — appears more often in efficient policy configurations. These costs are higher in Pareto-optimal simulations, suggesting such investments may lead to better NPVReturn and health returns.
+Higher diagnosis costs are strongly associated with Pareto-optimal simulations.
+This seemingly counterintuitive result reflects scenarios where prevention was prioritized: higher per-diagnosis costs make prevention (via the policy) more economically attractive, improving relative cost-effectiveness.
 
-Many Pareto-optimal scenarios involved combined interventions (e.g., both staff training and menu changes). This suggests that integrated policies—rather than isolated measures—may yield the most efficient outcomes.
+Pareto-optimal scenarios see a much greater reduction in disease diagnoses.
+This shows the policy is highly effective at reducing the burden of preventable illness, which contributes positively to both health and cost outcomes. More treatment events are avoided in optimal simulations.Reinforces the preventive effects of the policy drive better outcomes by lowering treatment needs, especially in high-risk populations. The Pareto-optimal scenarios emphasize higher returns on educational investment.
+These simulations likely include nutrition education or physical activity components that improve cognitive and academic outcomes, which strengthens the policy’s value. Better student performance aligns with optimal outcomes. Improvements in learning outcomes contribute to broader benefits, supporting higher returns in the model.
 
-Diagnosis cost and reduction in diagnoses are both elevated in the Pareto front. This might reflect scenarios where interventions successfully reduce high-cost health events — meaning more expensive health systems create more room for cost-saving.
-
-Budget exceedance is also slightly higher in Pareto cases. This may reflect that some effective strategies come close to or slightly over budget thresholds but still offer worthwhile returns.
+Scenarios with a higher starting disease burden are more likely to benefit. Policies show greater marginal returns in contexts with worse baseline health, where there’s more room for improvement. Exceeding budget constraints is less common in Pareto-optimal runs. Optimal simulations tend to stay within budget, reinforcing that cost containment is an important feature of high-performing interventions.
 
 ## Interpretation caveats
 
