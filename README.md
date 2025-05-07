@@ -4,7 +4,7 @@ When a public school in Hanoi implements the Min. requirement.
 What will the impacts be on child health? 
 What are the important factors influencing the decision (costs, benefits and risks)?
 
-[Conceptual Model Validation and Analysis](https://htmlpreview.github.io/?https://github.com/kimanh358/HUPH_decision_policy_nutrition/blob/main/Index.html
+[Conceptual Model Validation and Analysis](https://htmlpreview.github.io/?https://github.com/kimanh358/HUPH_decision_policy_nutrition/blob/main/index.html
 )
 
 ## Model format 
