@@ -21,7 +21,17 @@ library(tidyr)
 library(ggplot2)
 ```
 
-Here we outline a workflow with algorithmic support in R for comparing our conceptual model to the existing literature corpus, the government policy documents and a qualitative assessment. We apply these findings to systematically evaluate whether each component of our conceptual model is supported, refuted, missing from the literature and/or policy documents. We then synthesize this into a justified and adjusted version of the model.
+# Decision Context and Conceptual Framework
+
+This analysis supports school nutrition policy decision-makers—including education ministries, school administrators, and public health agencies—by evaluating interventions through a validated conceptual model. The model explicitly links actionable policy levers (canteen reforms, staff training, nutrition education) to outcomes (student health, learning, cost-efficiency), as visualized in Figure 1. Grounded in literature and policy evidence (validated in Tables 1–2), we focus on three core intervention domains:
+
+- Structural changes (e.g., kitchen upgrades, menu adjustments),
+- Capacity-building (food safety/nutrition training for staff), and
+- Educational programs (student nutrition curricula).
+
+We build a Monte Carlo simulation to quantify trade-offs across 10,000 policy configurations, identifying Pareto-optimal strategies that balance economic, health, and educational outcomes. Our workflow bridges conceptual validation (via automated literature/policy alignment checks) and quantitative prioritization, ensuring interventions are both evidence-based and operationally feasible.
+
+We apply algorithmic support in R for comparing our conceptual model to the existing literature corpus, government policy documents and a qualitative assessment. We apply these findings to systematically evaluate whether each component of our conceptual model is supported, refuted, missing from the literature and/or policy documents. We then synthesize this into a justified and adjusted version of the model.
 
 We build a semi-automated evidence synthesis framework that treats our documents like a team of virtual reviewers. The core idea is to define the core elements from our simple conceptual model (e.g. canteen regulation, staff training, food safety, nutrition education, etc.), search and summarize what each document says about each element, score the strength and direction of evidence per element, compare and synthesize to get a high-level view of agreement, gaps, and inconsistencies.
 
@@ -693,11 +703,10 @@ knitr::kable(summary_table, digits = 2, caption = "Input Trends in Pareto-Optima
 
 Pareto-optimal simulations were characterized by higher health and educational returns, especially in contexts with greater initial disease burden and higher diagnosis costs. These scenarios achieved substantial reductions in treatment and diagnosis events, while maintaining cost efficiency and budget adherence. The findings support the effectiveness of preventive and educational interventions in school-based nutrition policies, particularly where baseline health risks are high.
 
-Higher diagnosis costs are strongly associated with Pareto-optimal simulations.
-This seemingly counterintuitive result reflects scenarios where prevention was prioritized: higher per-diagnosis costs make prevention (via the policy) more economically attractive, improving relative cost-effectiveness.
+Higher diagnosis costs are strongly associated with Pareto-optimal simulations. This seemingly counterintuitive result reflects scenarios where prevention was prioritized: higher per-diagnosis costs make prevention (via the policy) more economically attractive, improving relative cost-effectiveness.
 
-Pareto-optimal scenarios see a much greater reduction in disease diagnoses.
-This shows the policy is highly effective at reducing the burden of preventable illness, which contributes positively to both health and cost outcomes. More treatment events are avoided in optimal simulations.Reinforces the preventive effects of the policy drive better outcomes by lowering treatment needs, especially in high-risk populations. The Pareto-optimal scenarios emphasize higher returns on educational investment.
+Pareto-optimal scenarios see a much greater reduction in disease diagnoses. The result suggests that the policy is highly effective at reducing the burden of preventable illness, which contributes positively to both health and cost outcomes. More treatment events are avoided in optimal simulations.Reinforces the preventive effects of the policy drive better outcomes by lowering treatment needs, especially in high-risk populations. The Pareto-optimal scenarios emphasize higher returns on educational investment.
+
 These simulations likely include nutrition education or physical activity components that improve cognitive and academic outcomes, which strengthens the policy’s value. Better student performance aligns with optimal outcomes. Improvements in learning outcomes contribute to broader benefits, supporting higher returns in the model.
 
 Scenarios with a higher starting disease burden are more likely to benefit. Policies show greater marginal returns in contexts with worse baseline health, where there’s more room for improvement. Exceeding budget constraints is less common in Pareto-optimal runs. Optimal simulations tend to stay within budget, reinforcing that cost containment is an important feature of high-performing interventions.
@@ -710,7 +719,7 @@ This suggests that model results are sensitive to the scale of implementation (e
 
 Overall, this simple model provides a transparent structure for exploring trade-offs, and the number of students emerges as the key scaling driver of outcome magnitude. Future work should prioritize narrowing uncertainty around critical parameters like student population, cost scaling, and implementation efficiency.
 
-This analysis provides insight into how specific school nutrition policy components influence multiple objectives under uncertainty. The approach demonstrates how evidence-based modeling can inform practical decision-making, supporting the design of more effective and efficient interventions.
+Our analysis provides insight into how specific school nutrition policy components influence multiple objectives under uncertainty. The approach demonstrates how evidence-based modeling can inform practical decision-making, supporting the design of more effective and efficient interventions.
 
 # References
 
