@@ -459,7 +459,39 @@ simulation_result <- mcSimulation(
 
 ```
 
-We used a Monte Carlo simulation to estimate the economic and health outcomes of school meal policy interventions under uncertainty. We ran the model 10,000 times to capture uncertainty across a wide range of possible scenarios. The results show that school policy interventions can offer both cost savings and improved student health. The model includes toggle variables to simulate the presence or absence of specific interventions, allowing us to identify which combinations of actions appear in the most efficient scenarios.
+We used a Monte Carlo simulation to estimate the economic and health outcomes of school meal policy interventions under uncertainty. We ran the model 10,000 times to capture uncertainty across a wide range of possible scenarios. 
+
+```{r monte_carlo_decision_value_result}
+library(bayesplot)
+decision_value_result <- data.frame(simulation_result$y$decision_value)
+color_scheme_set("blue")
+
+mcmc_areas(decision_value_result, prob = 0.9, point_est = "median") + ggplot2::scale_y_discrete(labels = "Decision NPV") 
+```
+
+an overall positive net health benefit: 
+
+```{r monte_carlo_net_health_result}
+library(bayesplot)
+net_health_result <- data.frame(simulation_result$y$net_health_benefit)
+color_scheme_set("blue")
+
+mcmc_areas(net_health_result, prob = 0.9, point_est = "median") + ggplot2::scale_y_discrete(labels = "Net health") 
+```
+
+an overall positive net education benefit: 
+
+```{r monte_carlo_education_result}
+library(bayesplot)
+education_result <- data.frame(simulation_result$y$education_benefit)
+color_scheme_set("blue")
+
+mcmc_areas(education_result, prob = 0.9, point_est = "median") + ggplot2::scale_y_discrete(labels = "Net education") 
+```
+
+*Plotted using `mcmc_areas()` function from the `bayesplot` library*
+
+Overall our simulations show that implementation of the policy will have a positive effect on the values expressed. However, the question remains which interpretations and practical interventions based on the policy will be most effective. For this we must dig deeper in the simulations and look for formulations of school meal interventions that show the greatest influence on overall, health and education outcomes. Our model includes toggle variables to simulate the presence or absence of specific interventions, allowing us to identify which combinations of actions appear in the most efficient scenarios.
 
 # Pareto analysis
 
