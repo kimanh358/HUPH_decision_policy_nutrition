@@ -64,7 +64,7 @@ school_policy_function <- function(
   } else {
     n_reduce_disease_diagnosis <- n_reduce_disease_diagnosis * (1 + menu_change_rda_nutrition_effect)
     n_reduce_disease_treatment <- n_reduce_disease_treatment * (1 + menu_change_rda_nutrition_effect)
-    unhealthy_canteen_foods <- unhealthy_canteen_foods *(1 +  menu_change_rda_nutrition_effect)
+    unhealthy_canteen_foods <- unhealthy_canteen_foods * (1 -  menu_change_rda_nutrition_effect)
     children_consume_healthy_food <- children_consume_healthy_food * (1 + menu_change_rda_nutrition_effect)
     children_access_healthy_food <- children_access_healthy_food * (1 + menu_change_rda_nutrition_effect)
   }
@@ -76,7 +76,7 @@ school_policy_function <- function(
   } else {
     n_reduce_disease_diagnosis <- n_reduce_disease_diagnosis * (1 + limit_unhealthy_canteen_food_nutrition_effect)
     n_reduce_disease_treatment <- n_reduce_disease_treatment * (1 + limit_unhealthy_canteen_food_nutrition_effect)
-    unhealthy_canteen_foods <- unhealthy_canteen_foods * (1 + limit_unhealthy_canteen_food_nutrition_effect)
+    unhealthy_canteen_foods <- unhealthy_canteen_foods * (1 - limit_unhealthy_canteen_food_nutrition_effect)
     children_consume_healthy_food <- children_consume_healthy_food * (1 + limit_unhealthy_canteen_food_nutrition_effect)
     children_access_healthy_food <- children_access_healthy_food * (1 + limit_unhealthy_canteen_food_nutrition_effect)
   }
