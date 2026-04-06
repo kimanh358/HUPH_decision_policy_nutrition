@@ -62,13 +62,13 @@ baseline_sick_days_per_student,2,,8,posnorm,baseline number of sick days per stu
 n_sick_days_avoided_per_student,0.5,,3,posnorm,reduction in sick days per student per year under policy
 value_per_sick_day_lost,0.05,,0.2,posnorm,value of a sick day avoided per student (million VND) - lost learning and admin costs
 ,,,,,
-use_staff_training_foodsafety,0.5,,0.9,tnorm_0_1,if staff training (%)
-staff_training_foodsafety_nutrition_effect,0.2,,0.8,tnorm_0_1,effect of foodsafety training (%)
-use_staff_training_nutrition,0.3,,0.9,tnorm_0_1,if nutrition training (%)
-staff_training_nutrition_effect,0.2,,0.8,tnorm_0_1,effect of nutrition training (%)
-use_physical_activity,0.2,,0.8,tnorm_0_1,if physical education (%)
-physical_activity_effect,0.2,,0.8,tnorm_0_1,effect of physical activity (%)
-use_menu_change_rda,0.3,,0.9,tnorm_0_1,if menu change for RDA (%)
-menu_change_rda_nutrition_effect,0.2,,0.9,tnorm_0_1,effect of menu change (%)
-use_limit_unhealthy_canteen_food,0.6,,0.8,tnorm_0_1,if limit unhealthy canteen food (%)
-limit_unhealthy_canteen_food_nutrition_effect,0.2,,0.9,tnorm_0_1,effect of canteen healthy food change (%)
+use_staff_training_foodsafety,0.1,,0.9,tnorm_0_1,if staff training (%)
+staff_training_foodsafety_nutrition_effect,0.1,,0.9,tnorm_0_1,effect of foodsafety training (%)
+use_staff_training_nutrition,0.1,,0.9,tnorm_0_1,if nutrition training (%)
+staff_training_nutrition_effect,0.1,,0.9,tnorm_0_1,effect of nutrition training (%)
+use_physical_activity,0.1,,0.9,tnorm_0_1,if physical education (%)
+physical_activity_effect,0.1,,0.9,tnorm_0_1,effect of physical activity (%)
+use_menu_change_rda,0.1,,0.9,tnorm_0_1,if menu change for RDA (%)
+menu_change_rda_nutrition_effect,0.1,,0.9,tnorm_0_1,effect of menu change (%)
+use_limit_unhealthy_canteen_food,0.1,,0.9,tnorm_0_1,if limit unhealthy canteen food (%)
+limit_unhealthy_canteen_food_nutrition_effect,0.1,,0.9,tnorm_0_1,effect of canteen healthy food change (%)
