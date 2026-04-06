@@ -34,6 +34,8 @@ school_policy_function <- function(
     n_reduce_disease_diagnosis <- n_reduce_disease_diagnosis * (1 + staff_training_foodsafety_nutrition_effect)
     n_reduce_disease_treatment <- n_reduce_disease_treatment * (1 + staff_training_foodsafety_nutrition_effect)
     n_sick_days_avoided_per_student <- n_sick_days_avoided_per_student * (1 + staff_training_foodsafety_nutrition_effect)
+    # Food safety reduces foodborne illness, fewer sick days missed → marginal learning gain
+    student_performance_improvement <- student_performance_improvement * (1 + staff_training_foodsafety_nutrition_effect)
   }
   
   # Staff training: Nutrition
@@ -42,10 +44,9 @@ school_policy_function <- function(
     training_costs_nutrition_annual <- 0
     training_costs_nutrition_1st_year <- 0
   } else {
-    # how much better does policy make things above baseline" — 
-    # so a value of 0.3 means 30% more students meet benchmarks, not 30% probability of improvement
-########    # A plausible theory of change for education benefit. There's no mechanism: why does physical activity or canteen monitoring improve student_performance_improvement? Currently only nutrition training and physical activity affect it — food safety and canteen limiting don't. Is that intentional? ########   
+    # Nutrition training directly improves dietary knowledge → better concentration and performance
     student_performance_improvement <- student_performance_improvement * (1 + staff_training_nutrition_effect)
+    staff_knowledge_nutrition <- staff_knowledge_nutrition * (1 + staff_training_nutrition_effect)
     n_sick_days_avoided_per_student <- n_sick_days_avoided_per_student * (1 + staff_training_nutrition_effect)
   }
   
@@ -69,6 +70,8 @@ school_policy_function <- function(
     n_reduce_disease_diagnosis <- n_reduce_disease_diagnosis * (1 + menu_change_rda_nutrition_effect)
     n_reduce_disease_treatment <- n_reduce_disease_treatment * (1 + menu_change_rda_nutrition_effect)
     n_sick_days_avoided_per_student <- n_sick_days_avoided_per_student * (1 + menu_change_rda_nutrition_effect)
+    # RDA-compliant meals improve nutrient intake → better cognitive function and learning
+    student_performance_improvement <- student_performance_improvement * (1 + menu_change_rda_nutrition_effect)
     unhealthy_canteen_foods <- unhealthy_canteen_foods * (1 -  menu_change_rda_nutrition_effect)
     children_consume_healthy_food <- children_consume_healthy_food * (1 + menu_change_rda_nutrition_effect)
     children_access_healthy_food <- children_access_healthy_food * (1 + menu_change_rda_nutrition_effect)
@@ -82,6 +85,8 @@ school_policy_function <- function(
     n_reduce_disease_diagnosis <- n_reduce_disease_diagnosis * (1 + limit_unhealthy_canteen_food_nutrition_effect)
     n_reduce_disease_treatment <- n_reduce_disease_treatment * (1 + limit_unhealthy_canteen_food_nutrition_effect)
     n_sick_days_avoided_per_student <- n_sick_days_avoided_per_student * (1 + limit_unhealthy_canteen_food_nutrition_effect)
+    # Removing energy-dense/nutrient-poor foods reduces sugar-driven energy crashes → sustained attention
+    student_performance_improvement <- student_performance_improvement * (1 + limit_unhealthy_canteen_food_nutrition_effect)
     unhealthy_canteen_foods <- unhealthy_canteen_foods * (1 - limit_unhealthy_canteen_food_nutrition_effect)
     children_consume_healthy_food <- children_consume_healthy_food * (1 + limit_unhealthy_canteen_food_nutrition_effect)
     children_access_healthy_food <- children_access_healthy_food * (1 + limit_unhealthy_canteen_food_nutrition_effect)
