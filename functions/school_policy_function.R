@@ -33,6 +33,7 @@ school_policy_function <- function(
   } else {
     n_reduce_disease_diagnosis <- n_reduce_disease_diagnosis * (1 + staff_training_foodsafety_nutrition_effect)
     n_reduce_disease_treatment <- n_reduce_disease_treatment * (1 + staff_training_foodsafety_nutrition_effect)
+    n_sick_days_avoided_per_student <- n_sick_days_avoided_per_student * (1 + staff_training_foodsafety_nutrition_effect)
   }
   
   # Staff training: Nutrition
@@ -45,6 +46,7 @@ school_policy_function <- function(
     # so a value of 0.3 means 30% more students meet benchmarks, not 30% probability of improvement
     student_performance_improvement <- student_performance_improvement * (1 + staff_training_nutrition_effect)
     staff_knowledge_nutrition <- staff_knowledge_nutrition * (1 + staff_training_nutrition_effect)
+    n_sick_days_avoided_per_student <- n_sick_days_avoided_per_student * (1 + staff_training_nutrition_effect)
   }
   
   # Physical education
@@ -56,6 +58,7 @@ school_policy_function <- function(
     student_performance_improvement <- student_performance_improvement * (1 + physical_activity_effect)
     n_reduce_disease_diagnosis <- n_reduce_disease_diagnosis * (1 + physical_activity_effect)
     n_reduce_disease_treatment <- n_reduce_disease_treatment * (1 + physical_activity_effect)
+    n_sick_days_avoided_per_student <- n_sick_days_avoided_per_student * (1 + physical_activity_effect)
   }
   
   # Menu change to meet RDA
@@ -65,6 +68,7 @@ school_policy_function <- function(
   } else {
     n_reduce_disease_diagnosis <- n_reduce_disease_diagnosis * (1 + menu_change_rda_nutrition_effect)
     n_reduce_disease_treatment <- n_reduce_disease_treatment * (1 + menu_change_rda_nutrition_effect)
+    n_sick_days_avoided_per_student <- n_sick_days_avoided_per_student * (1 + menu_change_rda_nutrition_effect)
     unhealthy_canteen_foods <- unhealthy_canteen_foods * (1 -  menu_change_rda_nutrition_effect)
     children_consume_healthy_food <- children_consume_healthy_food * (1 + menu_change_rda_nutrition_effect)
     children_access_healthy_food <- children_access_healthy_food * (1 + menu_change_rda_nutrition_effect)
@@ -77,6 +81,7 @@ school_policy_function <- function(
   } else {
     n_reduce_disease_diagnosis <- n_reduce_disease_diagnosis * (1 + limit_unhealthy_canteen_food_nutrition_effect)
     n_reduce_disease_treatment <- n_reduce_disease_treatment * (1 + limit_unhealthy_canteen_food_nutrition_effect)
+    n_sick_days_avoided_per_student <- n_sick_days_avoided_per_student * (1 + limit_unhealthy_canteen_food_nutrition_effect)
     unhealthy_canteen_foods <- unhealthy_canteen_foods * (1 - limit_unhealthy_canteen_food_nutrition_effect)
     children_consume_healthy_food <- children_consume_healthy_food * (1 + limit_unhealthy_canteen_food_nutrition_effect)
     children_access_healthy_food <- children_access_healthy_food * (1 + limit_unhealthy_canteen_food_nutrition_effect)
@@ -112,9 +117,9 @@ school_policy_function <- function(
   # Overweight increases risk
   if (bmi_high > overweight_threshold) {
     excess_overweight <- bmi_high - overweight_threshold
-    diagnosis_multiplier <- diagnosis_multiplier + nutrition_status_bmi_high * 
+    diagnosis_multiplier <- diagnosis_multiplier + excess_overweight * 
       overweight_diagnosis_risk_multiplier
-    treatment_multiplier <- treatment_multiplier + nutrition_status_bmi_high * 
+    treatment_multiplier <- treatment_multiplier + excess_overweight * 
       overweight_treatment_risk_multiplier
   }
   
@@ -147,6 +152,7 @@ school_policy_function <- function(
   # Clamp reductions so they cannot exceed the baseline rate (toggle compounding can push n_reduce above baseline)
   n_reduce_disease_diagnosis <- min(n_reduce_disease_diagnosis, baseline_disease_diagnosis)
   n_reduce_disease_treatment <- min(n_reduce_disease_treatment, baseline_disease_treatment)
+  n_sick_days_avoided_per_student <- min(n_sick_days_avoided_per_student, baseline_sick_days_per_student)
 
   baseline_health_costs <- ((baseline_disease_diagnosis * disease_diagnosis_cost) +
     (baseline_disease_treatment * disease_treatment_cost)) * n_student
@@ -158,7 +164,11 @@ school_policy_function <- function(
                                               n_student
   
   # Net health benefit (VND)
-  net_health_benefit <- baseline_health_costs - policy_health_costs
+  # Includes direct cost savings from reduced nurse visits AND
+  # absenteeism benefit: fewer sick days lost = more learning time + less admin disruption
+  sick_days_avoided <- min(n_sick_days_avoided_per_student, baseline_sick_days_per_student) * n_student
+  absenteeism_benefit <- sick_days_avoided * value_per_sick_day_lost
+  net_health_benefit <- (baseline_health_costs - policy_health_costs) + absenteeism_benefit
   
   # Education benefit (incremental gain above baseline)
   # Baseline learning value without any intervention (independent input parameter)
@@ -177,7 +187,9 @@ school_policy_function <- function(
   policy_cost[1] <- policy_cost[1] + training_costs_foodsafety_1st_year + training_costs_nutrition_1st_year + training_costs_physical_activity_1st_year
   
   # Benefits under policy
-  annual_policy_benefit <- net_health_benefit + education_benefit
+  # Use full education value under policy (not just increment) so that npv_policy - npv_no_policy
+  # correctly yields the incremental gain: net_health + baseline*improvement - costs
+  annual_policy_benefit <- net_health_benefit + education_benefit_policy
   policy_benefit <- vv(annual_policy_benefit, var_CV = CV_value, n = number_of_years)
   
   # Do-nothing (baseline) cost and benefit estimation from health outcomes only
