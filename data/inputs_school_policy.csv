@@ -4,9 +4,9 @@ discount_rate,5,,12,posnorm,Discounting factor (lãi suất chiết khấu) (%)
 CV_value,0.1,,0.4,tnorm_0_1,Coefficient of variation for our school policy intervention (%)
 n_student,1000,,2000,posnorm,number of student in school 
 ,,,,,
-disease_diagnosis_cost,0.001,,1,norm, spending for a student disease diagnosis visit to the doctor  (milion VND)
+disease_diagnosis_cost,0.005,,0.05,posnorm, spending for a student disease diagnosis visit to the doctor  (milion VND)
 n_reduce_disease_diagnosis,0.1,,2,posnorm,how many fewer diagnosis per student year with policy (million VND)
-disease_treatment_cost,0.001,,0.2,norm, spending for a student disease treatment  (million VND)
+disease_treatment_cost,0.005,,0.05,posnorm, spending for a student disease treatment  (million VND)
 n_reduce_disease_treatment,0.01,,1,posnorm,how many fewer treatment per student year with policy (million VND)
 baseline_disease_diagnosis,1,,6,posnorm,baseline number of visits per student per year
 baseline_disease_treatment,0.5,,2,posnorm,baseline number of treatments per student per year (some kind of medication)
@@ -58,6 +58,9 @@ peer_influence_factor,0.01,,0.1,tnorm_0_1,Amount of peer influence (%)
 student_performance_improvement,0.01,,0.1,tnorm_0_1,Fractional uplift in learning performance attributable to intervention (%)
 baseline_student_performance,0.5,,0.7,tnorm_0_1,Proportion of students meeting learning benchmarks without intervention (%)
 value_of_learning_per_student,1,,10,posnorm,value of learning per student (million VND/yr)
+baseline_sick_days_per_student,2,,8,posnorm,baseline number of sick days per student per year without intervention
+n_sick_days_avoided_per_student,0.5,,3,posnorm,reduction in sick days per student per year under policy
+value_per_sick_day_lost,0.05,,0.2,posnorm,value of a sick day avoided per student (million VND) - lost learning and admin costs
 ,,,,,
 use_staff_training_foodsafety,0.01,,0.99,tnorm_0_1,if staff training (%)
 staff_training_foodsafety_nutrition_effect,0.01,,0.1,tnorm_0_1,effect of foodsafety training (%)
