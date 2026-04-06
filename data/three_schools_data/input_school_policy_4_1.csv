@@ -4,12 +4,12 @@ discount_rate,0.01,,0.05,posnorm,Discounting factor (lãi su?t chi?t kh?u) (%)
 CV_value,0.1,,0.2,tnorm_0_1,Coefficient of variation for our school policy intervention (%)
 n_student,1000,,1700,posnorm,number of student in school 
 ,,,,,
-disease_diagnosis_cost,0.2,,3,norm, spending for a student disease diagnosis visit to the doctor  (milion VND)
-n_reduce_disease_diagnosis,1,,3,posnorm,how many fewer diagnosis per student year with policy (million VND)
-disease_treatment_cost,0.2,,5,norm, spending for a student disease treatment  (million VND)
-n_reduce_disease_treatment,1,,2,posnorm,how many fewer treatment per student year with policy (million VND)
-baseline_disease_diagnosis,1,,4,posnorm,baseline number of visits per student per year
-baseline_disease_treatment,1,,5,posnorm,baseline number of treatments per student per year (some kind of medication)
+disease_diagnosis_cost,0.001,,0.02,norm,spending for a student disease diagnosis visit to the doctor  (milion VND)
+n_reduce_disease_diagnosis,0.01,,0.03,posnorm,how many fewer diagnosis per student year with policy 
+disease_treatment_cost,0.001,,0.02,norm,spending for a student disease treatment  (million VND)
+n_reduce_disease_treatment,0.01,,0.03,posnorm,how many fewer treatment per student year with policy
+baseline_disease_diagnosis,0.01,,0.03,posnorm,baseline number of visits per student per year
+baseline_disease_treatment,0.03,,0.06,posnorm,baseline number of treatments per student per year (some kind of medication)
 ,,,,,
 training_costs_foodsafety_1st_year,1,,15,posnorm,spending for food safety training in 1st year (million VND)
 training_costs_foodsafety_annual,1.5,,10,posnorm,spending for annual food safety training (million VND)
