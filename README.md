@@ -7,6 +7,8 @@ What are the important factors influencing the decision (costs, benefits and ris
 [Conceptual Model Validation and Analysis](https://htmlpreview.github.io/?https://github.com/kimanh358/HUPH_decision_policy_nutrition/blob/main/index.html
 )
 
+The full methods transcript: https://htmlpreview.github.io/?https://github.com/kimanh358/HUPH_decision_policy_nutrition/blob/main/index.html
+
 ## Model format 
 
 ![Nutrition model-Page-1 drawio](https://github.com/user-attachments/assets/af118a25-c445-49a2-9a2a-1dbb101f5b45)
