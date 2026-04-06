@@ -15,7 +15,7 @@ make_variables <- function(est, n = 1)
 
 #Just one run#
 make_variables(decisionSupport::estimate_read_csv(paste
-("data/inputs_school_policy.csv", sep ="")))
+("data/three_schools_data/input_school_policy_4_1.csv", sep ="")))
 
 # Model function
 school_policy_function <- function(
@@ -41,6 +41,8 @@ school_policy_function <- function(
     training_costs_nutrition_annual <- 0
     training_costs_nutrition_1st_year <- 0
   } else {
+    # how much better does policy make things above baseline" — 
+    # so a value of 0.3 means 30% more students meet benchmarks, not 30% probability of improvement
     student_performance_improvement <- student_performance_improvement * (1 + staff_training_nutrition_effect)
     staff_knowledge_nutrition <- staff_knowledge_nutrition * (1 + staff_training_nutrition_effect)
   }
@@ -137,23 +139,35 @@ school_policy_function <- function(
   # How many fewer health events per VND spent?
   # A discussion among school nurses indicated that approximately 3-4% of the student body visits the school nurse each day
   # 50% to 70% of nurse visits result in some form of treatment or medication
-  
-  baseline_health_costs <- ((baseline_disease_diagnosis * disease_diagnosis_cost) + 
+
+  # Clamp costs to non-negative (norm distribution can sample below zero)
+  disease_diagnosis_cost <- max(0, disease_diagnosis_cost)
+  disease_treatment_cost <- max(0, disease_treatment_cost)
+
+  # Clamp reductions so they cannot exceed the baseline rate (toggle compounding can push n_reduce above baseline)
+  n_reduce_disease_diagnosis <- min(n_reduce_disease_diagnosis, baseline_disease_diagnosis)
+  n_reduce_disease_treatment <- min(n_reduce_disease_treatment, baseline_disease_treatment)
+
+  baseline_health_costs <- ((baseline_disease_diagnosis * disease_diagnosis_cost) +
     (baseline_disease_treatment * disease_treatment_cost)) * n_student
-  
-  policy_health_costs <- (((baseline_disease_diagnosis - n_reduce_disease_diagnosis) * 
-                            disease_diagnosis_cost) + 
+
+  policy_health_costs <- (((baseline_disease_diagnosis - n_reduce_disease_diagnosis) *
+                            disease_diagnosis_cost) +
                             ((baseline_disease_treatment - n_reduce_disease_treatment) *
-                               disease_treatment_cost)) * 
+                               disease_treatment_cost)) *
                                               n_student
   
   # Net health benefit (VND)
   net_health_benefit <- baseline_health_costs - policy_health_costs
   
-  # Education benefit (difference from baseline)
-  education_benefit_policy <- student_performance_improvement * n_student * value_of_learning_per_student
-  education_benefit_baseline <- education_benefit_policy * 0.75  # assume 25% lower without intervention
-  education_benefit <- education_benefit_policy
+  # Education benefit (incremental gain above baseline)
+  # Baseline learning value without any intervention (independent input parameter)
+  education_benefit_baseline <- baseline_student_performance * n_student * value_of_learning_per_student
+  # Policy improves performance above baseline by student_performance_improvement (fractional uplift)
+  education_benefit_policy <- education_benefit_baseline * (1 + student_performance_improvement)
+  # Incremental gain attributable to the intervention only
+  education_benefit <- education_benefit_policy - education_benefit_baseline
+  # simplifies to: baseline_student_performance * student_performance_improvement * n_student * value_of_learning_per_student
   
   # Annual policy cost
   annual_policy_costs <- training_costs_foodsafety_annual + training_costs_nutrition_annual +
@@ -169,7 +183,7 @@ school_policy_function <- function(
   # Do-nothing (baseline) cost and benefit estimation from health outcomes only
   annual_no_policy_costs <- vv(baseline_health_costs, var_CV = CV_value, n = number_of_years)
   annual_no_policy_benefit <- vv(education_benefit_baseline, var_CV = CV_value, n = number_of_years)
-  no_policy_result <- annual_no_policy_benefit - annual_no_policy_costs
+  no_policy_result <- annual_no_policy_benefit 
   
   # Net Present Values
   npv_policy <- discount(policy_benefit - policy_cost, discount_rate, TRUE)

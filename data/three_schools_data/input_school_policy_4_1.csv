@@ -1,12 +1,12 @@
 variable,lower,median,upper,distribution,label
 number_of_years,5,,5,const,Number of years for policy simulation
-discount_rate,0.01,,0.05,posnorm,Discounting factor (lãi su?t chi?t kh?u) (%)
+discount_rate,0.01,,0.05,posnorm,Discounting factor (lï¿½i su?t chi?t kh?u) (%)
 CV_value,0.1,,0.2,tnorm_0_1,Coefficient of variation for our school policy intervention (%)
 n_student,1000,,1700,posnorm,number of student in school 
 ,,,,,
-disease_diagnosis_cost,0.001,,0.02,norm,spending for a student disease diagnosis visit to the doctor  (milion VND)
+disease_diagnosis_cost,0.001,,0.02,posnorm,spending for a student disease diagnosis visit to the doctor  (milion VND)
 n_reduce_disease_diagnosis,0.01,,0.03,posnorm,how many fewer diagnosis per student year with policy 
-disease_treatment_cost,0.001,,0.02,norm,spending for a student disease treatment  (million VND)
+disease_treatment_cost,0.001,,0.02,posnorm,spending for a student disease treatment  (million VND)
 n_reduce_disease_treatment,0.01,,0.03,posnorm,how many fewer treatment per student year with policy
 baseline_disease_diagnosis,0.01,,0.03,posnorm,baseline number of visits per student per year
 baseline_disease_treatment,0.03,,0.06,posnorm,baseline number of treatments per student per year (some kind of medication)
@@ -55,7 +55,8 @@ unhealthy_canteen_foods,0.01,,0.6,tnorm_0_1,Prob of unhealthy canteen foods (%)
 unhealthy_food_exposure,0.5,,0.9,tnorm_0_1,Prob of unhealthy food exposire (%)
 advertisement_exposure,0.4,,0.9,tnorm_0_1,Prob of advertisement exposure (%)
 peer_influence_factor,0.01,,0.8,tnorm_0_1,Amount of peer influence (%)
-student_performance_improvement,0.2,,0.9,tnorm_0_1,Prob of students improving in class (%)
+student_performance_improvement,0.2,,0.9,tnorm_0_1,Fractional uplift in learning performance attributable to intervention (%)
+baseline_student_performance,0.5,,0.7,tnorm_0_1,Proportion of students meeting learning benchmarks without intervention (%)
 value_of_learning_per_student,1,,10,posnorm,value of learning per student (million VND/yr)
 ,,,,,
 use_staff_training_foodsafety,0.5,,0.9,tnorm_0_1,if staff training (%)

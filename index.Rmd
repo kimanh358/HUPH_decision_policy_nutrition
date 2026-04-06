@@ -42,7 +42,7 @@ As a first step we framed the decision of implementing school meal policy. We de
 ![Full conceptual Model](figures/Framework.png)
 **Figure 1.** Conceptual model of school nutrition policy impacts. The diagram illustrates key variables influencing student health and learning outcomes in the context of school meal interventions. Variables are color-coded by type: management actions (blue) represent components that can be directly modified by policy (e.g. canteen change, nutrition lessons); costs (brown) reflect resource needs for implementation; risks (pink) represent contextual or behavioral barriers such as off-campus consumption or food culture and advertising; and benefits (green) are the desired outcomes, including on-campus consumption, student health, and student learning. Arrows indicate hypothesized causal relationships, with thicker arrows denoting stronger influence.
 
-## Literure and policy review
+## Literature and policy review
 
 We performed a review of policy and literature documents and saved the text of the reviews together with the bib files of both the literature and policy review.
 
@@ -449,7 +449,7 @@ All model inputs were modeled probabilistically based on expert judgment and lit
 
 The outputs include both health cost savings (e.g. avoided diagnoses and treatments) and NPVReturn return (net present value compared to the baseline). These are plotted below to visualize the decision space.
 
-The three outcomes tracked were, NPVReturn Return (Net Present Value of policy vs. no policy), Health Cost Savings (avoided treatment and diagnosis costs), Cost per Student (total implementation cost per student). 
+The three outcomes tracked were, NPV (Net Present Value of policy vs. no policy), Health Cost Savings (avoided treatment and diagnosis costs), Cost per Student (total implementation cost per student). 
 
 ```{r monte_carlo, warning=FALSE}
 
@@ -545,9 +545,88 @@ knitr::kable(toggle_comparison, digits = 0,
              caption = "Mean decision NPV (million VND) by intervention toggle")
 ```
 
-The results reveal a clear hierarchy among the five actions. Limiting unhealthy canteen food shows the largest individual effect — simulations where this intervention was active produced a mean NPV approximately 43% higher than those where it was absent. Menu change to meet RDA, food safety training, and physical activity show moderate positive differences (~8–9%), while nutrition training has a negligible individual effect (~1%). All five actions show a positive direction (mean NPV is higher when on than off), confirming that each intervention contributes on average, though to very different degrees.
+The results reveal a clear hierarchy among the five actions. Limiting unhealthy canteen food shows the largest individual effect — simulations where this intervention was active produced a mean NPV approximately `r round((8.0 - 5.3) / 5.3 * 100)`% higher than those where it was absent (difference: `r round(7962 - 5313)` million VND). Physical activity and nutrition training show moderate positive differences of roughly 1,000–1,100 million VND each (~13–14%), while food safety training has a small marginal effect (~130 million VND, ~2%). Notably, menu change to meet RDA shows a **negative** mean difference (-393 million VND) — simulations where it was active produced slightly lower NPV on average, suggesting that in the current parameterisation the menu change costs are not fully offset by the health or education gains modelled for this intervention. This does not mean the intervention is harmful, but rather that its implementation costs may outweigh the modelled within-school benefits at this scale.
 
 However, individual toggle comparisons cannot capture how actions interact when implemented together. In this model, benefits compound through intermediate variables (BMI, food scores, disease reduction), so the effective return of any action depends in part on which other actions are also active. A scenario with all five toggles on is not simply the sum of five individual differences. Identifying which *combinations* yield the most efficient outcomes — and where trade-offs arise between NPV, health, and education benefits — requires a multi-objective approach. The Pareto analysis below addresses this.
+
+## Comparative outcome distributions
+
+Before examining the Pareto front, we compare the distributions of the three discounted outcome variables directly. The Decision NPV integrates both health savings and education gains net of costs, while Net Health Benefit and Education Benefit represent the component contributions before cost deduction.
+
+```{r npv_comparative_distributions, warning=FALSE}
+library(bayesplot)
+
+outcomes_df <- data.frame(
+  `Decision NPV`       = simulation_result$y$decision_value,
+  `Net Health Benefit` = simulation_result$y$net_health_benefit,
+  `Education Benefit`  = simulation_result$y$education_benefit,
+  check.names = FALSE
+)
+
+color_scheme_set("mix-blue-red")
+mcmc_areas(outcomes_df, prob = 0.9, point_est = "median") +
+  ggplot2::labs(x = "Million VND",
+                title = "Distribution of discounted policy outcomes (90% interval)") +
+  ggplot2::theme_minimal()
+```
+
+## Annual NPV components across the 5-year horizon
+
+The following figure decomposes the NPV into its three annual components — health savings, education benefit, and implementation costs — discounted to present value for each year. Each boxplot summarises the distribution across all 10,000 simulations, showing how uncertainty in the inputs propagates through time. Costs are shown as negative values; health and education benefits as positive.
+
+```{r npv_cashflow_timeline, warning=FALSE}
+library(dplyr)
+library(tidyr)
+
+n_years <- 5
+x  <- simulation_result$x
+dr <- x$discount_rate
+
+health_benefit   <- simulation_result$y$net_health_benefit
+edu_benefit      <- simulation_result$y$education_benefit
+
+recurring_costs  <- x$training_costs_foodsafety_annual +
+                    x$training_costs_nutrition_annual +
+                    x$training_costs_physical_activity_annual +
+                    x$change_menu_costs_annual +
+                    x$monitoring_canteen_cost
+
+first_year_extra <- x$training_costs_foodsafety_1st_year +
+                    x$training_costs_nutrition_1st_year +
+                    x$training_costs_physical_activity_1st_year
+
+cashflow_long <- lapply(1:n_years, function(t) {
+  disc    <- 1 / (1 + dr)^t
+  costs_t <- if (t == 1) recurring_costs + first_year_extra else recurring_costs
+  data.frame(
+    Year      = paste0("Year ", t),
+    Health    =  health_benefit * disc,
+    Education =  edu_benefit    * disc,
+    Costs     = -costs_t        * disc
+  )
+}) %>%
+  bind_rows() %>%
+  pivot_longer(c(Health, Education, Costs),
+               names_to  = "Component",
+               values_to = "Value") %>%
+  mutate(
+    Year      = factor(Year, levels = paste0("Year ", 1:n_years)),
+    Component = factor(Component, levels = c("Health", "Education", "Costs"))
+  )
+
+ggplot2::ggplot(cashflow_long,
+                ggplot2::aes(x = Year, y = Value, fill = Component)) +
+  ggplot2::geom_boxplot(outlier.shape = NA, alpha = 0.7, width = 0.6) +
+  ggplot2::facet_wrap(~Component, scales = "free_y", ncol = 1) +
+  ggplot2::scale_fill_manual(
+    values = c(Health = "#2196F3", Education = "#4CAF50", Costs = "#F44336")
+  ) +
+  ggplot2::geom_hline(yintercept = 0, linetype = "dashed", colour = "grey40") +
+  ggplot2::labs(x = NULL, y = "Million VND (discounted)",
+                title = "Discounted annual NPV components across 5-year horizon") +
+  ggplot2::theme_minimal(base_size = 12) +
+  ggplot2::theme(legend.position = "none")
+```
 
 ## Expected Value of Perfect Information (EVPI) analysis
 
@@ -573,21 +652,21 @@ sum(EVPI$education_benefit$EVPI_do, na.rm = T)
 ```
 
 The EVPI analysis quantifies the maximum expected benefit of resolving uncertainty
-before committing to a decision. For **education benefits**, the EVPI is
-`r round(sum(EVPI$education_benefit$EVPI_do, na.rm = TRUE), 2)`, meaning that
-uncertainty in the modelled inputs has no bearing on the education-related decision:
-the intervention yields a positive education outcome regardless of which plausible
-input values are drawn. For **net health benefits**, the EVPI is
-`r round(sum(EVPI$net_health_benefit$EVPI_do, na.rm = TRUE), 2)`, indicating a small
-but non-zero expected gain from obtaining perfect information — some parameter
-combinations produce borderline health outcomes, but the overall magnitude is low
-relative to the scale of benefits. For the **composite decision value** (NPV), the
-EVPI is `r round(sum(EVPI$decision_value$EVPI_do, na.rm = TRUE), 2)` (million VND),
-reflecting minor residual uncertainty in economic returns; the decision to implement
-is robust but a modest portion of simulations sits near break-even. Together, the low
-EVPI values across all three outcomes suggest that further data collection is unlikely
-to change the policy recommendation, and the current evidence base is sufficient to
-proceed with the intervention.
+before committing to a decision. For **net health benefits**, the EVPI is
+`r round(sum(EVPI$net_health_benefit$EVPI_do, na.rm = TRUE), 3)` million VND, meaning
+that uncertainty in the modelled inputs has no bearing on the health-related decision:
+the intervention yields a positive health outcome regardless of which plausible input
+values are drawn. For **education benefits**, the EVPI is
+`r round(sum(EVPI$education_benefit$EVPI_do, na.rm = TRUE), 4)` million VND —
+effectively zero — indicating the education benefit is similarly robust to parameter
+uncertainty. For the **composite decision value** (NPV), the EVPI is
+`r round(sum(EVPI$decision_value$EVPI_do, na.rm = TRUE), 2)` million VND, reflecting
+a small residual uncertainty in the economic return: a minority of simulations produce
+outcomes close to break-even, and perfect information about those parameters could
+marginally improve the decision. Nevertheless, the magnitude is low relative to the
+median NPV, and the decision to implement remains robust. Together, these results
+suggest that further data collection is unlikely to change the policy recommendation,
+and the current evidence base is sufficient to proceed with the intervention.
 
 # Pareto analysis
 
@@ -731,9 +810,7 @@ summary_table <- data.frame(
   Mean_Pareto = sapply(sim_data[sim_data$on_pareto, toggle_vars], mean)
 )
 
-summary_table$Change_Pareto_vs_All <- (summary_table$Mean_Pareto - summary_table$Mean_All) / summary_table$Mean_All * 100
-
-summary_table <- summary_table[order(-abs(summary_table$Change_Pareto_vs_All)), ]
+summary_table <- summary_table[order(-abs(summary_table$Mean_Pareto - summary_table$Mean_All)), ]
 
 rownames(summary_table) <- c(
   "Food Safety Training",
@@ -741,7 +818,10 @@ rownames(summary_table) <- c(
   "Physical Activity Training",
   "Menu Change to Meet RDA",
   "Limit Unhealthy Canteen Food"
-)
+)[order(-abs(
+  sapply(simulation_result$x[, toggle_vars], mean) -
+  sapply(sim_data[sim_data$on_pareto, toggle_vars], mean)
+))]
 
 knitr::kable(summary_table, digits = 2, caption = "Toggle Settings in Pareto-Optimal Simulations")
 
@@ -768,7 +848,7 @@ To better understand what drives the most efficient outcomes, we compared the in
 
 We compared the mean values of all input variables between the full simulation set and the Pareto-optimal subset. The variables with the greatest deviations help identify factors that characterize efficient policy configurations.
 
-The column `Mean_Pareto` shows the average value of each input among simulations on the Pareto front. `Mean_All` shows the average across the full set of model runs. The difference is summarized in `Change_Pareto_vs_All`. It is the percent change from the average in the full dataset to the average in Pareto-optimal cases. Positive values mean the variable was higher on average in efficient cases, suggesting it's associated with good performance.
+The columns show the mean value of each input across all simulations (`Mean_All`) and across the Pareto-optimal subset (`Mean_Pareto`). Rows are ordered by the largest absolute difference between the two, highlighting the inputs most associated with efficient policy configurations. Variables where `Mean_Pareto` is notably higher or lower than `Mean_All` identify conditions that characterise the best-performing scenarios.
 
 ```{r}
 
@@ -777,13 +857,11 @@ summary_table <- data.frame(
   Mean_Pareto = sapply(sim_data[sim_data$on_pareto, input_vars], mean)
 )
 
-# Calculate relative difference
-summary_table$Change_Pareto_vs_All <- (summary_table$Mean_Pareto - summary_table$Mean_All) / summary_table$Mean_All * 100
+# Sort by largest absolute difference
+pct_change <- (summary_table$Mean_Pareto - summary_table$Mean_All) / summary_table$Mean_All * 100
+summary_table <- summary_table[order(-abs(pct_change)), ]
 
-# Only the Pareto-optimal subset (those not dominated on all three outcome axes: NPV, health, cost).
-
-summary_table <- summary_table[order(-abs(summary_table$Change_Pareto_vs_All)), ]
-knitr::kable(summary_table, digits = 2, caption = "Input Trends in Pareto-Optimal Simulations")
+knitr::kable(summary_table, digits = 2, caption = "Mean input values across all simulations vs. Pareto-optimal simulations")
 
 ```
 
