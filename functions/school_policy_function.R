@@ -44,6 +44,7 @@ school_policy_function <- function(
   } else {
     # how much better does policy make things above baseline" — 
     # so a value of 0.3 means 30% more students meet benchmarks, not 30% probability of improvement
+########    # A plausible theory of change for education benefit. There's no mechanism: why does physical activity or canteen monitoring improve student_performance_improvement? Currently only nutrition training and physical activity affect it — food safety and canteen limiting don't. Is that intentional? ########   
     student_performance_improvement <- student_performance_improvement * (1 + staff_training_nutrition_effect)
     n_sick_days_avoided_per_student <- n_sick_days_avoided_per_student * (1 + staff_training_nutrition_effect)
   }
@@ -185,18 +186,24 @@ school_policy_function <- function(
   policy_cost <- vv(annual_policy_costs, var_CV = CV_value, n = number_of_years)
   policy_cost[1] <- policy_cost[1] + training_costs_foodsafety_1st_year + training_costs_nutrition_1st_year + training_costs_physical_activity_1st_year
   
-  # Benefits under policy
-  # Use full education value under policy (not just increment) so that npv_policy - npv_no_policy
-  # correctly yields the incremental gain: net_health + baseline*improvement - costs
-  annual_policy_benefit <- net_health_benefit + education_benefit_policy
+  # Benefits under policy: education value + absenteeism savings
+  # Health costs are kept on the cost side (below) so both NPVs are interpretable
+  annual_policy_benefit <- education_benefit_policy + absenteeism_benefit
   policy_benefit <- vv(annual_policy_benefit, var_CV = CV_value, n = number_of_years)
   
-  # Do-nothing (baseline) cost and benefit estimation from health outcomes only
+  # Health costs as annual time series on the cost side
+  annual_policy_health_cost <- vv(policy_health_costs, var_CV = CV_value, n = number_of_years)
+  # Total outflows: implementation costs + ongoing health costs under policy
+  total_policy_outflow <- policy_cost + annual_policy_health_cost
+  
+  # Do-nothing: education value minus full baseline health burden
+  # Both NPVs now reflect health costs, so npv_no_policy is interpretable as the value of inaction
   annual_no_policy_benefit <- vv(education_benefit_baseline, var_CV = CV_value, n = number_of_years)
-  no_policy_result <- annual_no_policy_benefit 
+  annual_no_policy_health_cost <- vv(baseline_health_costs, var_CV = CV_value, n = number_of_years)
+  no_policy_result <- annual_no_policy_benefit - annual_no_policy_health_cost
   
   # Net Present Values
-  npv_policy <- discount(policy_benefit - policy_cost, discount_rate, TRUE)
+  npv_policy <- discount(policy_benefit - total_policy_outflow, discount_rate, TRUE)
   npv_no_policy <- discount(no_policy_result, discount_rate, TRUE)
   
   return(
