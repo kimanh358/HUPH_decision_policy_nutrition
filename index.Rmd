@@ -563,7 +563,7 @@ Run Expected Value of Perfect Information (EVPI) analysis and save the result as
  load("data/data_evpi.Rda") # open from saved file (last model run) - it is stable result / takes very long to run
 ```
 
-According to the EVPI there is no value in gathering further information to better inform decision making. No expected losses in any of the simulations. 
+According to the EVPI there is value in gathering further information to better inform decision making.
 
 ```{r sum_evpi}
 # "decision_value", "net_health_benefit", "education_benefit"
