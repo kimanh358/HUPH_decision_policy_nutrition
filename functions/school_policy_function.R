@@ -192,7 +192,6 @@ school_policy_function <- function(
   policy_benefit <- vv(annual_policy_benefit, var_CV = CV_value, n = number_of_years)
   
   # Do-nothing (baseline) cost and benefit estimation from health outcomes only
-  annual_no_policy_costs <- vv(baseline_health_costs, var_CV = CV_value, n = number_of_years)
   annual_no_policy_benefit <- vv(education_benefit_baseline, var_CV = CV_value, n = number_of_years)
   no_policy_result <- annual_no_policy_benefit 
   
