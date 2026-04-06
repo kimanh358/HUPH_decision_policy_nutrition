@@ -45,7 +45,6 @@ school_policy_function <- function(
     # how much better does policy make things above baseline" — 
     # so a value of 0.3 means 30% more students meet benchmarks, not 30% probability of improvement
     student_performance_improvement <- student_performance_improvement * (1 + staff_training_nutrition_effect)
-    staff_knowledge_nutrition <- staff_knowledge_nutrition * (1 + staff_training_nutrition_effect)
     n_sick_days_avoided_per_student <- n_sick_days_avoided_per_student * (1 + staff_training_nutrition_effect)
   }
   
@@ -166,7 +165,7 @@ school_policy_function <- function(
   # Net health benefit (VND)
   # Includes direct cost savings from reduced nurse visits AND
   # absenteeism benefit: fewer sick days lost = more learning time + less admin disruption
-  sick_days_avoided <- min(n_sick_days_avoided_per_student, baseline_sick_days_per_student) * n_student
+  sick_days_avoided <- n_sick_days_avoided_per_student * n_student
   absenteeism_benefit <- sick_days_avoided * value_per_sick_day_lost
   net_health_benefit <- (baseline_health_costs - policy_health_costs) + absenteeism_benefit
   
