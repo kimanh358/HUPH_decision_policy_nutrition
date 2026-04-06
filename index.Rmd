@@ -572,6 +572,23 @@ sum(EVPI$net_health_benefit$EVPI_do, na.rm = T)
 sum(EVPI$education_benefit$EVPI_do, na.rm = T) 
 ```
 
+The EVPI analysis quantifies the maximum expected benefit of resolving uncertainty
+before committing to a decision. For **education benefits**, the EVPI is
+`r round(sum(EVPI$education_benefit$EVPI_do, na.rm = TRUE), 2)`, meaning that
+uncertainty in the modelled inputs has no bearing on the education-related decision:
+the intervention yields a positive education outcome regardless of which plausible
+input values are drawn. For **net health benefits**, the EVPI is
+`r round(sum(EVPI$net_health_benefit$EVPI_do, na.rm = TRUE), 2)`, indicating a small
+but non-zero expected gain from obtaining perfect information — some parameter
+combinations produce borderline health outcomes, but the overall magnitude is low
+relative to the scale of benefits. For the **composite decision value** (NPV), the
+EVPI is `r round(sum(EVPI$decision_value$EVPI_do, na.rm = TRUE), 2)` (million VND),
+reflecting minor residual uncertainty in economic returns; the decision to implement
+is robust but a modest portion of simulations sits near break-even. Together, the low
+EVPI values across all three outcomes suggest that further data collection is unlikely
+to change the policy recommendation, and the current evidence base is sufficient to
+proceed with the intervention.
+
 # Pareto analysis
 
 The Pareto front includes simulations that are not outperformed in all objectives by any other scenario. These are the most efficient configurations—improvements in one outcome would require trade-offs in others.
