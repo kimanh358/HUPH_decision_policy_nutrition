@@ -92,8 +92,18 @@ school_policy_function <- function(
     children_access_healthy_food <- children_access_healthy_food * (1 + limit_unhealthy_canteen_food_nutrition_effect)
   }
   
-  # Composite indicators (simplified)
-  unhealthy_food_exposure <- max(c(unhealthy_canteen_foods, unhealthy_school_gate_foods, advertisement_exposure))
+  # Composite unhealthy food exposure: mean across sources so reducing canteen food
+  # actually lowers exposure even when school gate foods remain high.
+  # School gate food is uncontrollable background risk — no policy switch affects it.
+  unhealthy_food_exposure <- mean(c(unhealthy_canteen_foods, unhealthy_school_gate_foods, advertisement_exposure))
+
+  # Gate food attenuates how much the policy can achieve: children who access cheap
+  # unhealthy food at the gate partially offset canteen improvements.
+  # A higher school gate food score reduces achievable disease reductions.
+  gate_food_offset <- 1 - unhealthy_school_gate_foods
+  n_reduce_disease_diagnosis <- n_reduce_disease_diagnosis * gate_food_offset
+  n_reduce_disease_treatment <- n_reduce_disease_treatment * gate_food_offset
+  n_sick_days_avoided_per_student <- n_sick_days_avoided_per_student * gate_food_offset
   
   # Policy impacts (attenuated by barriers)
   food_access_score <- children_access_healthy_food * (1 - unhealthy_food_exposure) * (1 - resistance_child_preferences_attitude)
@@ -213,13 +223,16 @@ school_policy_function <- function(
   
   return(
     list(
-      decision_value = npv_policy - npv_no_policy,
+      decision_value     = npv_policy - npv_no_policy,
       net_health_benefit = net_health_benefit,
-      education_benefit = education_benefit, 
-      use_staff_training_foodsafety = use_staff_training_foodsafety,
-      use_staff_training_nutrition = use_staff_training_nutrition,
-      use_physical_activity = use_physical_activity,
-      use_menu_change_rda = use_menu_change_rda,
+      education_benefit  = education_benefit,
+      cashflow_policy    = policy_benefit - total_policy_outflow,
+      cashflow_health    = vv(net_health_benefit, var_CV = CV_value, n = number_of_years),
+      cashflow_education = vv(education_benefit,  var_CV = CV_value, n = number_of_years),
+      use_staff_training_foodsafety    = use_staff_training_foodsafety,
+      use_staff_training_nutrition     = use_staff_training_nutrition,
+      use_physical_activity            = use_physical_activity,
+      use_menu_change_rda              = use_menu_change_rda,
       use_limit_unhealthy_canteen_food = use_limit_unhealthy_canteen_food
     )
   )

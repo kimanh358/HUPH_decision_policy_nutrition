@@ -21,8 +21,6 @@ change_menu_costs_annual,2,,10,posnorm,spending for annual menu change (million 
 monitoring_canteen_cost,1,,75,posnorm,annual spending for monitoring canteen (million VND)
 ,,,,,
 unhealthy_schoolgate_food_risk,0.03,,0.7,tnorm_0_1,risk of unhealthy schoolgate food
-impact_risk_unhealthy_schoolgate_food,0.1,,0.7,tnorm_0_1,
-practice_school_management_board,0.8,,0.9,tnorm_0_1,"Practices of School management board about school meal ( ex: chosing lesson, food supplier...)"
 staff_knowledge_food_safety,0.7,,0.9,tnorm_0_1,Staff knowledge about food safety
 staff_knowledge_nutrition,0.7,,0.9,tnorm_0_1,Staff knowledge about nutrition
 ,,,,,
@@ -52,10 +50,9 @@ food_access_and_consumption_reduce_overweight,0.01,,0.9,tnorm_0_1,threshold for 
 food_access_and_consumption_reduce_underweight,0.01,,0.9,tnorm_0_1,threshold for food access and consumtion reducing (%)
 ,,,,,
 unhealthy_canteen_foods,0.01,,0.6,tnorm_0_1,Prob of unhealthy canteen foods (%)
-unhealthy_food_exposure,0.5,,0.9,tnorm_0_1,Prob of unhealthy food exposire (%)
 advertisement_exposure,0.4,,0.9,tnorm_0_1,Prob of advertisement exposure (%)
 peer_influence_factor,0.01,,0.8,tnorm_0_1,Amount of peer influence (%)
-student_performance_improvement,0.2,,0.9,tnorm_0_1,Fractional uplift in learning performance attributable to intervention (%)
+student_performance_improvement,0.05,,0.6,tnorm_0_1,Fractional uplift in learning performance attributable to intervention (%)
 baseline_student_performance,0.5,,0.7,tnorm_0_1,Proportion of students meeting learning benchmarks without intervention (%)
 value_of_learning_per_student,1,,10,posnorm,value of learning per student (million VND/yr)
 baseline_sick_days_per_student,2,,8,posnorm,baseline number of sick days per student per year without intervention

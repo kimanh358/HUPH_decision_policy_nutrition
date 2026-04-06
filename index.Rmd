@@ -46,7 +46,7 @@ As a first step we framed the decision of implementing school meal policy. We de
 
 We performed a review of policy and literature documents and saved the text of the reviews together with the bib files of both the literature and policy review.
 
-```{r load-texts, warning=FALSE}
+```{r load-texts, warning=FALSE, echo=FALSE}
 # Load .txt files
 literature_text <- tolower(readLines("text_Review/Text_Lit_Review.txt"))
 
@@ -288,7 +288,7 @@ student_health = c(
 )
 ```
 
-```{r search_terms_list}
+```{r search_terms_list, echo=FALSE}
 search_terms <- list(
   food_tech_training = food_tech_training,
   teaching_resources = teaching_resources,
@@ -309,7 +309,7 @@ search_terms <- list(
 
 We created a comparison matrix to compare results of the literature and policy review and check whether we can consider them to provide either "Strong", "Moderate", "Weak", or no evidence for our model. 
 
-```{r check-function}
+```{r check-function, echo=FALSE}
 check_hits <- function(search_terms, text) {
   any(sapply(search_terms, function(t) grepl(t, text, ignore.case = TRUE)))
 }
@@ -348,7 +348,7 @@ knitr::kable(
 
 ## Count citations
 
-```{r get_hits_by_bib}
+```{r get_hits_by_bib, echo=FALSE}
 source("functions/get_hits_by_bib.R")
 literature_hits <- get_hits_by_bib(search_terms, bib_texts_literature)
 
@@ -451,7 +451,7 @@ The outputs include both health cost savings (e.g. avoided diagnoses and treatme
 
 The three outcomes tracked were, NPV (Net Present Value of policy vs. no policy), Health Cost Savings (avoided treatment and diagnosis costs), Cost per Student (total implementation cost per student). 
 
-```{r monte_carlo, warning=FALSE}
+```{r monte_carlo, warning=FALSE, echo=FALSE}
 
 source("functions/school_policy_function.R")
 # Load inputs and run simulation
@@ -471,37 +471,111 @@ simulation_result <- mcSimulation(
 
 We used a Monte Carlo simulation to estimate the economic and health outcomes of school meal policy interventions under uncertainty. We ran the model 10,000 times to capture uncertainty across a wide range of possible scenarios. 
 
-```{r monte_carlo_decision_value_result}
-library(bayesplot)
-decision_value_result <- data.frame(simulation_result$y$decision_value)
-color_scheme_set("blue")
+## Comparative outcome distributions
 
-mcmc_areas(decision_value_result, prob = 0.9, point_est = "median") + ggplot2::scale_y_discrete(labels = "Decision NPV") 
+Before examining the Pareto front, we compare the distributions of the three discounted outcome variables directly. The Decision NPV integrates both health savings and education gains net of costs, while Net Health Benefit and Education Benefit represent the component contributions before cost deduction.
+
+```{r npv_comparative_distributions, warning=FALSE, echo=FALSE}
+
+
+plot_distributions(mcSimulation_object = simulation_result, 
+                   vars = c("decision_value", "net_health_benefit", "education_benefit"), method = "boxplot", x_axis_name = "Million VND over 5 years", 
+                             old = c("decision_value", "net_health_benefit", "education_benefit"),
+                   new_names = c("Overall Decision NPV", "Net Health Benefit", "Education Benefit"))
+
 ```
 
-an overall positive net health benefit: 
+## Distribution of NPV components by intervention
 
-```{r monte_carlo_net_health_result}
-library(bayesplot)
-net_health_result <- data.frame(simulation_result$y$net_health_benefit)
-color_scheme_set("blue")
+Each row is one intervention (active runs only). The three columns show the distribution of the **overall net** NPV, the **health** component, and the **education** component across all Monte Carlo runs. Box spans the interquartile range; whiskers extend to 5th and 95th percentiles.
 
-mcmc_areas(net_health_result, prob = 0.9, point_est = "median") + ggplot2::scale_y_discrete(labels = "Net health") 
+```{r npv_components_by_intervention, warning=FALSE, echo=FALSE, fig.height=18, fig.width=11}
+library(cowplot)
+
+toggle_vars <- c(
+  "use_staff_training_foodsafety",
+  "use_staff_training_nutrition",
+  "use_physical_activity",
+  "use_menu_change_rda",
+  "use_limit_unhealthy_canteen_food"
+)
+
+toggle_labels <- c(
+  "Food Safety Training",
+  "Nutrition Training",
+  "Physical Activity",
+  "Menu Change to RDA",
+  "Limit Unhealthy Canteen Food"
+)
+
+colours_dark  <- c("salmon",    "sandybrown", "palegreen3", "skyblue",  "mediumpurple2")
+colours_light <- c("mistyrose", "moccasin",   "palegreen",  "aliceblue","lavender")
+
+col_titles <- cowplot::plot_grid(
+  cowplot::ggdraw() + cowplot::draw_label("Overall (net)",     fontface = "bold", size = 11),
+  cowplot::ggdraw() + cowplot::draw_label("Health benefit",    fontface = "bold", size = 11),
+  cowplot::ggdraw() + cowplot::draw_label("Education benefit", fontface = "bold", size = 11),
+  ncol = 3
+)
+
+make_box <- function(values, dark_col, light_col, y_label = "Million VND") {
+  df <- data.frame(x = " ", y = values)
+  ggplot2::ggplot(df, ggplot2::aes(x = x, y = y)) +
+    ggplot2::geom_boxplot(
+      fill = light_col, colour = dark_col, linewidth = 0.6,
+      outlier.shape = NA,
+      coef = 0  # whiskers at 25/75 box edges; we draw 5/95 manually below
+    ) +
+    ggplot2::stat_boxplot(
+      geom = "errorbar", width = 0.25, colour = dark_col,
+      coef = (quantile(values, 0.95, na.rm = TRUE) - median(values, na.rm = TRUE)) /
+              (diff(range(values, na.rm = TRUE)) * 0.01 + 1e-9)
+    ) +
+    ggplot2::geom_segment(
+      ggplot2::aes(x = 0.75, xend = 1.25,
+                   y = quantile(values, 0.05, na.rm = TRUE),
+                   yend = quantile(values, 0.05, na.rm = TRUE)),
+      colour = dark_col, linewidth = 0.5, linetype = "dashed"
+    ) +
+    ggplot2::geom_segment(
+      ggplot2::aes(x = 0.75, xend = 1.25,
+                   y = quantile(values, 0.95, na.rm = TRUE),
+                   yend = quantile(values, 0.95, na.rm = TRUE)),
+      colour = dark_col, linewidth = 0.5, linetype = "dashed"
+    ) +
+    ggplot2::geom_hline(yintercept = 0, linetype = "dashed", colour = "grey50") +
+    ggplot2::labs(x = NULL, y = y_label) +
+    ggplot2::theme_minimal(base_size = 9) +
+    ggplot2::theme(axis.text.x = ggplot2::element_blank(),
+                   axis.ticks.x = ggplot2::element_blank())
+}
+
+row_plots <- lapply(seq_along(toggle_vars), function(i) {
+  v   <- toggle_vars[i]
+  on  <- simulation_result$x[[v]] >= 0.5
+  sy  <- simulation_result$y[on, , drop = FALSE]
+
+  row_label <- cowplot::ggdraw() +
+    cowplot::draw_label(toggle_labels[i], angle = 90, fontface = "bold", size = 10)
+
+  content <- cowplot::plot_grid(
+    make_box(sy$decision_value,    colours_dark[i], colours_light[i]),
+    make_box(sy$net_health_benefit, colours_dark[i], colours_light[i]),
+    make_box(sy$education_benefit, colours_dark[i], colours_light[i]),
+    ncol = 3, align = "h"
+  )
+
+  cowplot::plot_grid(row_label, content, ncol = 2, rel_widths = c(0.08, 1))
+})
+
+cowplot::plot_grid(
+  col_titles,
+  cowplot::plot_grid(plotlist = row_plots, ncol = 1, align = "v"),
+  ncol = 1, rel_heights = c(0.04, 1)
+)
 ```
 
-an overall positive net education benefit: 
-
-```{r monte_carlo_education_result}
-library(bayesplot)
-education_result <- data.frame(simulation_result$y$education_benefit)
-color_scheme_set("blue")
-
-mcmc_areas(education_result, prob = 0.9, point_est = "median") + ggplot2::scale_y_discrete(labels = "Net education") 
-```
-
-*Plotted using `mcmc_areas()` function from the `bayesplot` library*
-
-Overall our simulations show that implementation of the policy will have a positive effect on the values expressed. However, the question remains which interpretations and practical interventions based on the policy will be most effective. For this we must dig deeper in the simulations and look for formulations of school meal interventions that show the greatest influence on overall, health and education outcomes. Our model includes toggle variables to simulate the presence or absence of specific interventions, allowing us to identify which combinations of actions appear in the most efficient scenarios.
+Overall our simulations show that implementation of the policy will have a positive effect on health and education. Which interpretations and practical interventions based on the policy will be most effective can be found in the simulations. Next we look for formulations of school meal interventions that show the greatest influence on overall, health and education outcomes. Our model includes toggle variables to simulate the presence or absence of specific interventions. We can identify which combinations of actions appear in the most efficient scenarios.
 
 # Comparing five actions
 
@@ -509,7 +583,7 @@ Overall our simulations show that implementation of the policy will have a posit
 
 As a first step, we compare the mean net present value (NPV) of the policy decision across simulations where each intervention was present (toggle = 1) versus absent (toggle = 0). This provides a direct, interpretable summary of the average outcome difference associated with each action in isolation.
 
-```{r toggle_mean_table}
+```{r toggle_mean_table, echo=FALSE}
 toggle_vars <- c(
   "use_staff_training_foodsafety",
   "use_staff_training_nutrition",
@@ -549,90 +623,11 @@ The results reveal a clear hierarchy among the five actions. Limiting unhealthy 
 
 However, individual toggle comparisons cannot capture how actions interact when implemented together. In this model, benefits compound through intermediate variables (BMI, food scores, disease reduction), so the effective return of any action depends in part on which other actions are also active. A scenario with all five toggles on is not simply the sum of five individual differences. Identifying which *combinations* yield the most efficient outcomes — and where trade-offs arise between NPV, health, and education benefits — requires a multi-objective approach. The Pareto analysis below addresses this.
 
-## Comparative outcome distributions
-
-Before examining the Pareto front, we compare the distributions of the three discounted outcome variables directly. The Decision NPV integrates both health savings and education gains net of costs, while Net Health Benefit and Education Benefit represent the component contributions before cost deduction.
-
-```{r npv_comparative_distributions, warning=FALSE}
-library(bayesplot)
-
-outcomes_df <- data.frame(
-  `Decision NPV`       = simulation_result$y$decision_value,
-  `Net Health Benefit` = simulation_result$y$net_health_benefit,
-  `Education Benefit`  = simulation_result$y$education_benefit,
-  check.names = FALSE
-)
-
-color_scheme_set("mix-blue-red")
-mcmc_areas(outcomes_df, prob = 0.9, point_est = "median") +
-  ggplot2::labs(x = "Million VND",
-                title = "Distribution of discounted policy outcomes (90% interval)") +
-  ggplot2::theme_minimal()
-```
-
-## Annual NPV components across the 5-year horizon
-
-The following figure decomposes the NPV into its three annual components — health savings, education benefit, and implementation costs — discounted to present value for each year. Each boxplot summarises the distribution across all 10,000 simulations, showing how uncertainty in the inputs propagates through time. Costs are shown as negative values; health and education benefits as positive.
-
-```{r npv_cashflow_timeline, warning=FALSE}
-library(dplyr)
-library(tidyr)
-
-n_years <- 5
-x  <- simulation_result$x
-dr <- x$discount_rate
-
-health_benefit   <- simulation_result$y$net_health_benefit
-edu_benefit      <- simulation_result$y$education_benefit
-
-recurring_costs  <- x$training_costs_foodsafety_annual +
-                    x$training_costs_nutrition_annual +
-                    x$training_costs_physical_activity_annual +
-                    x$change_menu_costs_annual +
-                    x$monitoring_canteen_cost
-
-first_year_extra <- x$training_costs_foodsafety_1st_year +
-                    x$training_costs_nutrition_1st_year +
-                    x$training_costs_physical_activity_1st_year
-
-cashflow_long <- lapply(1:n_years, function(t) {
-  disc    <- 1 / (1 + dr)^t
-  costs_t <- if (t == 1) recurring_costs + first_year_extra else recurring_costs
-  data.frame(
-    Year      = paste0("Year ", t),
-    Health    =  health_benefit * disc,
-    Education =  edu_benefit    * disc,
-    Costs     = -costs_t        * disc
-  )
-}) %>%
-  bind_rows() %>%
-  pivot_longer(c(Health, Education, Costs),
-               names_to  = "Component",
-               values_to = "Value") %>%
-  mutate(
-    Year      = factor(Year, levels = paste0("Year ", 1:n_years)),
-    Component = factor(Component, levels = c("Health", "Education", "Costs"))
-  )
-
-ggplot2::ggplot(cashflow_long,
-                ggplot2::aes(x = Year, y = Value, fill = Component)) +
-  ggplot2::geom_boxplot(outlier.shape = NA, alpha = 0.7, width = 0.6) +
-  ggplot2::facet_wrap(~Component, scales = "free_y", ncol = 1) +
-  ggplot2::scale_fill_manual(
-    values = c(Health = "#2196F3", Education = "#4CAF50", Costs = "#F44336")
-  ) +
-  ggplot2::geom_hline(yintercept = 0, linetype = "dashed", colour = "grey40") +
-  ggplot2::labs(x = NULL, y = "Million VND (discounted)",
-                title = "Discounted annual NPV components across 5-year horizon") +
-  ggplot2::theme_minimal(base_size = 12) +
-  ggplot2::theme(legend.position = "none")
-```
-
 ## Expected Value of Perfect Information (EVPI) analysis
 
 Run Expected Value of Perfect Information (EVPI) analysis and save the result as `data_evpi.Rda`. We run `multi_EVPI` on the full input space `simulation_result$x` rather than just the toggles — the important uncertainty is in the effect-magnitude and cost parameters, not in whether each intervention is "on." 
 
-```{r run_all_evpi}
+```{r run_all_evpi, echo=FALSE}
 # Select decision variables
 # mcSimulation_table <- data.frame(simulation_result$x, simulation_result$y[1:3])
 # Run multi_evpi
@@ -644,7 +639,7 @@ Run Expected Value of Perfect Information (EVPI) analysis and save the result as
 
 According to the EVPI there is value in gathering further information to better inform decision making.
 
-```{r sum_evpi}
+```{r sum_evpi, echo=FALSE}
 # "decision_value", "net_health_benefit", "education_benefit"
 sum(EVPI$decision_value$EVPI_do, na.rm = T) 
 sum(EVPI$net_health_benefit$EVPI_do, na.rm = T) 
@@ -678,7 +673,7 @@ The resulting Pareto front reveals a clear trade-off curve. Policy configuration
 
 These findings highlight the existence of efficient policy options that cannot be improved in one objective without sacrificing another. Decision-makers can use this front to choose policies based on priorities — e.g., maximizing health benefits under a fixed cost constraint, or seeking the best ROI with acceptable health impacts.
 
-```{r}
+```{r pareto_extract, echo=FALSE}
 
 sim_data <- data.frame(simulation_result$x, simulation_result$y[1:3])  # Extract all output values
 
@@ -720,7 +715,7 @@ input_vars <- setdiff(colnames(simulation_result$x), c("decision_value", "net_he
 
 ## Plot Pareto optimal 
 
-```{r}
+```{r pareto_plot, echo=FALSE}
 # Add Pareto label
 sim_data$Pareto <- ifelse(sim_data$on_pareto, "Pareto", "Other")
 
@@ -796,7 +791,7 @@ ggsave("figures/Fig_Pareto.png", final_plot, width = 10, height = 7)
 
 ## Management options 
 
-```{r}
+```{r management_toggle, echo=FALSE}
 toggle_vars <- c(
   "use_staff_training_foodsafety",
   "use_staff_training_nutrition",
@@ -828,6 +823,7 @@ knitr::kable(summary_table, digits = 2, caption = "Toggle Settings in Pareto-Opt
 ```
 
 
+
 Pareto-optimal simulations most often included food safety, nutrition, and physical activity training, highlighting the value of capacity building among school staff. These interventions likely improved implementation fidelity, enhanced student health and performance, and kept costs within budget. Menu adjustments and limiting unhealthy foods were less frequently decisive but may play a complementary role in well-rounded programs.
 
 Food Safety Training (+34.5%)  was the most frequently included intervention in Pareto-optimal runs. Improving hygiene and food safety practices has strong downstream effects—likely through reduced illness and associated costs—making it a high-value, cost-effective policy component.
@@ -850,7 +846,7 @@ We compared the mean values of all input variables between the full simulation s
 
 The columns show the mean value of each input across all simulations (`Mean_All`) and across the Pareto-optimal subset (`Mean_Pareto`). Rows are ordered by the largest absolute difference between the two, highlighting the inputs most associated with efficient policy configurations. Variables where `Mean_Pareto` is notably higher or lower than `Mean_All` identify conditions that characterise the best-performing scenarios.
 
-```{r}
+```{r summary_table_pareto, echo=FALSE}
 
 summary_table <- data.frame(
   Mean_All = sapply(simulation_result$x[, input_vars], mean),
@@ -871,7 +867,7 @@ Higher diagnosis costs are strongly associated with Pareto-optimal simulations. 
 
 Pareto-optimal scenarios see a much greater reduction in disease diagnoses. The result suggests that the policy is highly effective at reducing the burden of preventable illness, which contributes positively to both health and cost outcomes. More treatment events are avoided in optimal simulations.Reinforces the preventive effects of the policy drive better outcomes by lowering treatment needs, especially in high-risk populations. The Pareto-optimal scenarios emphasize higher returns on educational investment.
 
-These simulations likely include nutrition education or physical activity components that improve cognitive and academic outcomes, which strengthens the policy’s value. Better student performance aligns with optimal outcomes. Improvements in learning outcomes contribute to broader benefits, supporting higher returns in the model.
+These simulations likely echo nutrition education or physical activity components that improve cognitive and academic outcomes, which strengthens the policy’s value. Better student performance aligns with optimal outcomes. Improvements in learning outcomes contribute to broader benefits, supporting higher returns in the model.
 
 Scenarios with a higher starting disease burden are more likely to benefit. Policies show greater marginal returns in contexts with worse baseline health, where there’s more room for improvement. Exceeding budget constraints is less common in Pareto-optimal runs. Optimal simulations tend to stay within budget, reinforcing that cost containment is an important feature of high-performing interventions.
 
