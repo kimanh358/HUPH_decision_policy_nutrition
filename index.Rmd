@@ -455,7 +455,7 @@ The three outcomes tracked were, NPVReturn Return (Net Present Value of policy v
 
 source("functions/school_policy_function.R")
 # Load inputs and run simulation
-input_data <- estimate_read_csv("data/inputs_school_policy.csv")
+input_data <- estimate_read_csv("data/three_schools_data/input_school_policy_4_1.csv")
 
 numberOfModelRuns <- 10000
 
@@ -503,19 +503,53 @@ mcmc_areas(education_result, prob = 0.9, point_est = "median") + ggplot2::scale_
 
 Overall our simulations show that implementation of the policy will have a positive effect on the values expressed. However, the question remains which interpretations and practical interventions based on the policy will be most effective. For this we must dig deeper in the simulations and look for formulations of school meal interventions that show the greatest influence on overall, health and education outcomes. Our model includes toggle variables to simulate the presence or absence of specific interventions, allowing us to identify which combinations of actions appear in the most efficient scenarios.
 
-# Point-biserial correlation of five actions
+# Comparing five actions
 
-Since `chance_event()`returns 0/1, `cor` of `results` gives us a point-biserial correlation of each policy toggle with the decision outcome across all runs. For each policy toggle, point-biserial correlation compares the distribution of decision_value in runs where that intervention fired (1) vs. didn't fire (0). A value of +1 would mean the intervention always produced higher decision values; -1 always lower.
+## Mean decision value by action
 
-```{r cor_results}
-cor(simulation_result$x[, c("use_staff_training_foodsafety",
-                            "use_staff_training_nutrition",
-                   "use_physical_activity",
-                   "use_menu_change_rda",
-                   "use_limit_unhealthy_canteen_food")],
-    simulation_result$y$decision_value)
+As a first step, we compare the mean net present value (NPV) of the policy decision across simulations where each intervention was present (toggle = 1) versus absent (toggle = 0). This provides a direct, interpretable summary of the average outcome difference associated with each action in isolation.
+
+```{r toggle_mean_table}
+toggle_vars <- c(
+  "use_staff_training_foodsafety",
+  "use_staff_training_nutrition",
+  "use_physical_activity",
+  "use_menu_change_rda",
+  "use_limit_unhealthy_canteen_food"
+)
+
+toggle_labels <- c(
+  "Food Safety Training",
+  "Nutrition Training",
+  "Physical Activity",
+  "Menu Change to Meet RDA",
+  "Limit Unhealthy Canteen Food"
+)
+
+sim_x <- simulation_result$x
+decision_value <- simulation_result$y$decision_value
+
+toggle_comparison <- do.call(rbind, lapply(seq_along(toggle_vars), function(i) {
+  v <- toggle_vars[i]
+  fired <- sim_x[[v]] >= 0.5
+  data.frame(
+    Intervention = toggle_labels[i],
+    Mean_NPV_off = mean(decision_value[!fired]),
+    Mean_NPV_on  = mean(decision_value[fired]),
+    Difference   = mean(decision_value[fired]) - mean(decision_value[!fired])
+  )
+}))
+
+knitr::kable(toggle_comparison, digits = 0,
+             col.names = c("Intervention", "Mean NPV (off)", "Mean NPV (on)", "Difference"),
+             caption = "Mean decision NPV (million VND) by intervention toggle")
 ```
-The correlations of the five actions are all essentially zero (range: -0.016 to +0.016). No single intervention strongly drives the decision outcome on its own — the interventions are not individually decisive. The negative values for `use_staff_training_foodsafety` and `use_physical_activity` are counterintuitive but not significant — they're noise at this magnitude. This is consistent with our model's logic: benefits compound through intermediate variables (BMI, food scores, disease reduction), and the `use_`* flags are just one layer of a multi-step causal chain. Why this happens mechanically: Each `use_`* variable is sampled ~uniformly from 0.01–0.99, so `chance_event` fires roughly 50% of the time for all of them. With all toggles varying simultaneously and independently, the variance in decision_value is dominated by the effect-size parameters (`physical_activity_effect`, `menu_change_rda_nutrition_effect`, etc.) and structural parameters (`n_student`, `disease_treatment_cost`, etc.) — not by which toggle fired.
+
+The results reveal a clear hierarchy among the five actions. Limiting unhealthy canteen food shows the largest individual effect — simulations where this intervention was active produced a mean NPV approximately 43% higher than those where it was absent. Menu change to meet RDA, food safety training, and physical activity show moderate positive differences (~8–9%), while nutrition training has a negligible individual effect (~1%). All five actions show a positive direction (mean NPV is higher when on than off), confirming that each intervention contributes on average, though to very different degrees.
+
+However, individual toggle comparisons cannot capture how actions interact when implemented together. In this model, benefits compound through intermediate variables (BMI, food scores, disease reduction), so the effective return of any action depends in part on which other actions are also active. A scenario with all five toggles on is not simply the sum of five individual differences. Identifying which *combinations* yield the most efficient outcomes — and where trade-offs arise between NPV, health, and education benefits — requires a multi-objective approach. The Pareto analysis below addresses this.
+
+## Expected Value of Perfect Information (EVPI) analysis
 
 Run Expected Value of Perfect Information (EVPI) analysis and save the result as `data_evpi.Rda`. We run `multi_EVPI` on the full input space `simulation_result$x` rather than just the toggles — the important uncertainty is in the effect-magnitude and cost parameters, not in whether each intervention is "on." 
 
@@ -531,11 +565,11 @@ Run Expected Value of Perfect Information (EVPI) analysis and save the result as
 
 According to the EVPI there is no value in gathering further information to better inform decision making. No expected losses in any of the simulations. 
 
-```{r test_evpi_if_should_plot}
+```{r sum_evpi}
 # "decision_value", "net_health_benefit", "education_benefit"
-sum(EVPI$decision_value$expected_gain, na.rm = T) <0 # False do not plot
-sum(EVPI$net_health_benefit$expected_gain, na.rm = T) <0 # False do not plot
-sum(EVPI$education_benefit$expected_gain, na.rm = T) <0 # False do not plot
+sum(EVPI$decision_value$EVPI_do, na.rm = T) 
+sum(EVPI$net_health_benefit$EVPI_do, na.rm = T) 
+sum(EVPI$education_benefit$EVPI_do, na.rm = T) 
 ```
 
 # Pareto analysis

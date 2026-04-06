@@ -54,7 +54,6 @@ school_policy_function <- function(
     student_performance_improvement <- student_performance_improvement * (1 + physical_activity_effect)
     n_reduce_disease_diagnosis <- n_reduce_disease_diagnosis * (1 + physical_activity_effect)
     n_reduce_disease_treatment <- n_reduce_disease_treatment * (1 + physical_activity_effect)
-    staff_knowledge_food_safety <- staff_knowledge_food_safety * (1 + physical_activity_effect)
   }
   
   # Menu change to meet RDA
