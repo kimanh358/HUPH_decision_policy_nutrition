@@ -445,7 +445,7 @@ We ran the full model using Monte Carlo simulation to estimate the likely outcom
 
 ## Key Input Assumptions
 
-All model inputs were modeled probabilistically based on expert judgment and literature estimates. See the input file `inputs_school_policy.csv` for full details.
+All model inputs were modeled probabilistically based on expert judgment and literature estimates. See the input file `input_school_policy_post.csv` for full details.
 
 The outputs include both health cost savings (e.g. avoided diagnoses and treatments) and NPVReturn return (net present value compared to the baseline). These are plotted below to visualize the decision space.
 
@@ -455,7 +455,7 @@ The three outcomes tracked were, NPV (Net Present Value of policy vs. no policy)
 
 source("functions/school_policy_function.R")
 # Load inputs and run simulation
-input_data <- estimate_read_csv("data/three_schools_data/input_school_policy_4_1.csv")
+input_data <- estimate_read_csv("data/input_school_policy_post.csv")
 
 numberOfModelRuns <- 10000
 
@@ -880,6 +880,140 @@ This suggests that model results are sensitive to the scale of implementation (e
 Overall, this simple model provides a transparent structure for exploring trade-offs, and the number of students emerges as the key scaling driver of outcome magnitude. Future work should prioritize narrowing uncertainty around critical parameters like student population, cost scaling, and implementation efficiency.
 
 Our analysis provides insight into how specific school nutrition policy components influence multiple objectives under uncertainty. The approach demonstrates how evidence-based modeling can inform practical decision-making, supporting the design of more effective and efficient interventions.
+
+# School-level expert health effect assessment
+
+During expert elicitation, staff at each of the three study schools provided their own estimates of health-related parameters — specifically the baseline frequency of disease diagnosis and treatment visits, the likely reduction in those events under the policy, and the associated costs per event. These school-level estimates were not used in the main Monte Carlo simulation (which draws on the pooled `input_school_policy_post.csv`), but they offer a valuable independent perspective on the expected scale of health benefits.
+
+Notably, the school experts generally gave substantially higher values for both baseline disease burden and cost per event than the conservative pooled estimates: baseline diagnosis rates of 1–4 visits per student per year (vs. 0.01–0.03 in the main model) and per-event costs of 0.2–5 million VND (vs. 0.005–0.05 million VND). If these school-level estimates are taken at face value, the expected health effect of the policy is considerably larger.
+
+The analysis below samples from each school's distributions and computes:
+
+- **Baseline annual health cost** — the expected cost burden without the policy (diagnoses + treatments × cost per event × number of students).
+- **Avoided annual health cost** — the expected health saving attributable to the policy (reduced events × cost per event × number of students), equivalent to the `net_health_benefit` output in the main model.
+- **Proportional reduction** — avoided cost as a percentage of baseline.
+
+```{r school_health_expert, warning=FALSE, echo=FALSE, message=FALSE}
+
+school_files <- c(
+  "School 4-1"   = "data/three_schools_data/input_school_policy_4_1.csv",
+  "Dong Ngac A"  = "data/three_schools_data/input_school_policy_Dongngac.csv",
+  "Dong Ngac B"  = "data/three_schools_data/input_school_policy_DongngacB.csv",
+  "Duc Thang"    = "data/three_schools_data/input_school_policy_Duc_Thang.csv"
+)
+
+n_expert_samples <- 5000
+
+# Mini model function: only uses the health-related inputs from each school CSV.
+# mcSimulation handles all distribution sampling, avoiding raw random() return-type issues.
+health_metrics_function <- function() {
+  diag_cost  <- max(0, disease_diagnosis_cost)
+  treat_cost <- max(0, disease_treatment_cost)
+
+  baseline_cost <- (baseline_disease_diagnosis * diag_cost +
+                    baseline_disease_treatment  * treat_cost) * n_student
+
+  avoided_cost  <- (n_reduce_disease_diagnosis * diag_cost +
+                    n_reduce_disease_treatment  * treat_cost) * n_student
+
+  pct_reduction <- ifelse(baseline_cost > 0, avoided_cost / baseline_cost * 100, NA_real_)
+
+  list(
+    baseline_cost = baseline_cost,
+    avoided_cost  = avoided_cost,
+    pct_reduction = pct_reduction
+  )
+}
+
+set.seed(42)
+school_health_list <- lapply(names(school_files), function(school_name) {
+  sim <- mcSimulation(
+    estimate         = estimate_read_csv(school_files[[school_name]]),
+    model_function   = health_metrics_function,
+    numberOfModelRuns = n_expert_samples,
+    functionSyntax   = "plainNames"
+  )
+  data.frame(
+    school        = school_name,
+    baseline_cost = sim$y$baseline_cost,
+    avoided_cost  = sim$y$avoided_cost,
+    pct_reduction = sim$y$pct_reduction
+  )
+})
+
+school_health_df <- do.call(rbind, school_health_list)
+school_health_df$school <- factor(school_health_df$school, levels = names(school_files))
+```
+
+## Baseline health burden and avoided costs by school
+
+```{r school_health_plot, warning=FALSE, echo=FALSE, fig.height=6, fig.width=10}
+
+long_df <- tidyr::pivot_longer(
+  school_health_df,
+  cols      = c(baseline_cost, avoided_cost),
+  names_to  = "metric",
+  values_to = "value_mVND"
+)
+long_df$metric <- factor(long_df$metric,
+                         levels = c("baseline_cost", "avoided_cost"),
+                         labels = c("Baseline health cost (no policy)",
+                                    "Avoided health cost (policy benefit)"))
+
+ggplot(long_df, aes(x = school, y = value_mVND, fill = metric)) +
+  geom_boxplot(outlier.shape = NA, position = position_dodge(width = 0.75),
+               alpha = 0.7, coef = 1.5) +
+  scale_fill_manual(values = c("Baseline health cost (no policy)" = "salmon",
+                                "Avoided health cost (policy benefit)" = "steelblue")) +
+  labs(
+    x    = NULL,
+    y    = "Million VND per year",
+    fill = NULL,
+    title = "Expected annual health costs and policy savings by school\n(based on school experts' estimates)"
+  ) +
+  theme_minimal(base_size = 11) +
+  theme(legend.position = "bottom")
+```
+
+## Proportional reduction in health costs
+
+```{r school_health_pct_plot, warning=FALSE, echo=FALSE, fig.height=4, fig.width=8}
+
+ggplot(school_health_df, aes(x = school, y = pct_reduction, fill = school)) +
+  geom_boxplot(outlier.shape = NA, alpha = 0.7, coef = 1.5, show.legend = FALSE) +
+  geom_hline(yintercept = 50, linetype = "dashed", colour = "grey50") +
+  scale_fill_brewer(palette = "Set2") +
+  labs(
+    x     = NULL,
+    y     = "Avoided cost as % of baseline",
+    title = "Proportional reduction in health costs under the policy\n(school experts' estimates)"
+  ) +
+  theme_minimal(base_size = 11)
+```
+
+## Summary statistics
+
+```{r school_health_summary, warning=FALSE, echo=FALSE}
+
+summary_health <- school_health_df %>%
+  dplyr::group_by(school) %>%
+  dplyr::summarise(
+    Baseline_median_mVND  = round(median(baseline_cost,  na.rm = TRUE), 1),
+    Avoided_median_mVND   = round(median(avoided_cost,   na.rm = TRUE), 1),
+    Avoided_p10_mVND      = round(quantile(avoided_cost, 0.10, na.rm = TRUE), 1),
+    Avoided_p90_mVND      = round(quantile(avoided_cost, 0.90, na.rm = TRUE), 1),
+    Pct_reduction_median  = round(median(pct_reduction,  na.rm = TRUE), 1),
+    .groups = "drop"
+  )
+
+knitr::kable(summary_health,
+             col.names = c("School", "Baseline (median, M VND/yr)",
+                           "Avoided cost (median)", "Avoided cost (P10)", "Avoided cost (P90)",
+                           "% reduction (median)"),
+             caption = "Annual health cost burden and expected policy savings by school, based on school experts' own estimates.")
+```
+
+These school-level estimates suggest that the health benefit of the policy could be considerably larger than reflected in the pooled model — the gap is driven primarily by higher baseline disease rates and higher per-event costs reported by school staff. The proportional reduction (policy-attributable avoided costs as a share of baseline) gives a consistent signal across schools regardless of scale differences. This supplementary assessment does not change the main model conclusions, but it indicates that the health dimension of the intervention may be meaningfully understated when using the conservative pooled estimates, and supports targeted further data collection at the school level.
 
 # References
 

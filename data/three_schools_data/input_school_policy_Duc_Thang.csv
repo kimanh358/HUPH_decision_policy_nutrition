@@ -1,15 +1,15 @@
 variable,lower,median,upper,distribution,label
 number_of_years,5,,5,const,Number of years for policy simulation
-discount_rate,0.01,,0.05,posnorm,Discounting factor (lï¿½i su?t chi?t kh?u) (%)
+discount_rate,0.01,,0.05,posnorm,Discounting factor (lãi su?t chi?t kh?u) (%)
 CV_value,0.1,,0.2,tnorm_0_1,Coefficient of variation for our school policy intervention (%)
 n_student,1000,,1500,posnorm,number of student in school 
 ,,,,,
-disease_diagnosis_cost,0.005,,0.05,posnorm,spending for a student disease diagnosis visit to the doctorï¿½ (milion VND)
-n_reduce_disease_diagnosis,0.01,,0.03,posnorm,how many fewer diagnosis per student year with policyï¿½
-disease_treatment_cost,0.005,,0.05,posnorm,spending for a student disease treatmentï¿½ (million VND)
-n_reduce_disease_treatment,0.01,,0.03,posnorm,how many fewer treatment per student year with policy
-baseline_disease_diagnosis,0.01,,0.03,posnorm,baseline number of visits per student per year
-baseline_disease_treatment,0.03,,0.06,posnorm,baseline number of treatments per student per year (some kind of medication)
+disease_diagnosis_cost,0.2,,1,norm, spending for a student disease diagnosis visit to the doctor  (milion VND)
+n_reduce_disease_diagnosis,2,,3,posnorm,how many fewer diagnosis per student year with policy (million VND)
+disease_treatment_cost,0.3,,1.5,norm, spending for a student disease treatment  (million VND)
+n_reduce_disease_treatment,1,,2,posnorm,how many fewer treatment per student year with policy (million VND)
+baseline_disease_diagnosis,2,,4,posnorm,baseline number of visits per student per year
+baseline_disease_treatment,3,,5,posnorm,baseline number of treatments per student per year (some kind of medication)
 ,,,,,
 training_costs_foodsafety_1st_year,1.5,,2,posnorm,spending for food safety training in 1st year (million VND)
 training_costs_foodsafety_annual,1.5,,2,posnorm,spending for annual food safety training (million VND)
@@ -55,12 +55,8 @@ unhealthy_canteen_foods,0.01,,0.2,tnorm_0_1,Prob of unhealthy canteen foods (%)
 unhealthy_food_exposure,0.5,,0.9,tnorm_0_1,Prob of unhealthy food exposire (%)
 advertisement_exposure,0.5,,0.7,tnorm_0_1,Prob of advertisement exposure (%)
 peer_influence_factor,0.01,,0.1,tnorm_0_1,Amount of peer influence (%)
-student_performance_improvement,0.3,,0.5,tnorm_0_1,Fractional uplift in learning performance attributable to intervention (%)
-baseline_student_performance,0.5,,0.7,tnorm_0_1,Proportion of students meeting learning benchmarks without intervention (%)
+student_performance_improvement,0.3,,0.5,tnorm_0_1,Prob of students improving in class (%)
 value_of_learning_per_student,1,,10,posnorm,value of learning per student (million VND/yr)
-baseline_sick_days_per_student,2,,8,posnorm,baseline number of sick days per student per year without intervention
-n_sick_days_avoided_per_student,0.5,,3,posnorm,reduction in sick days per student per year under policy
-value_per_sick_day_lost,0.05,,0.2,posnorm,value of a sick day avoided per student (million VND) - lost learning and admin costs
 ,,,,,
 use_staff_training_foodsafety,0.8,,0.9,tnorm_0_1,if staff training (%)
 staff_training_foodsafety_nutrition_effect,0.2,,0.3,tnorm_0_1,effect of foodsafety training (%)
