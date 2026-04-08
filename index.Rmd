@@ -23,17 +23,16 @@ library(ggplot2)
 
 # Decision Context and Conceptual Framework
 
-This analysis supports school nutrition policy decision-makers—including education ministries, school administrators, and public health agencies—by evaluating interventions through a validated conceptual model. The model explicitly links actionable policy levers (canteen reforms, staff training, nutrition education) to outcomes (student health, learning, cost-efficiency), as visualized in Figure 1. Grounded in literature and policy evidence (validated in Tables 1–2), we focus on three core intervention domains:
+This analysis supports school nutrition policy decision-makers—including education ministries, school administrators, and public health agencies—by evaluating school level nutrition policy interventions. The model explicitly links actionable policy levers (canteen reforms, staff training, nutrition education) to outcomes (student health, learning, cost-efficiency), as visualized in Figure 1. Grounded in literature and policy evidence (validated in Tables 1–2), we focus on five core intervention domains (used as toggles in our model):
 
-- Structural changes (e.g., kitchen upgrades, menu adjustments),
-- Capacity-building (food safety/nutrition training for staff), and
-- Educational programs (student nutrition curricula).
+- Food Safety Training
+- Nutrition Training	
+- Physical Activity	
+- Menu Change to Meet RDA	
+- Limit Unhealthy Canteen Food	
+
 
 We build a Monte Carlo simulation to quantify trade-offs across 10,000 policy configurations, identifying Pareto-optimal strategies that balance economic, health, and educational outcomes. Our workflow bridges conceptual validation (via automated literature/policy alignment checks) and quantitative prioritization, ensuring interventions are both evidence-based and operationally feasible.
-
-We apply algorithmic support in R for comparing our conceptual model to the existing literature corpus, government policy documents and a qualitative assessment. We apply these findings to systematically evaluate whether each component of our conceptual model is supported, refuted, missing from the literature and/or policy documents. We then synthesize this into a justified and adjusted version of the model.
-
-We build a semi-automated evidence synthesis framework that treats our documents like a team of virtual reviewers. The core idea is to define the core elements from our simple conceptual model (e.g. canteen regulation, staff training, food safety, nutrition education, etc.), search and summarize what each document says about each element, score the strength and direction of evidence per element, compare and synthesize to get a high-level view of agreement, gaps, and inconsistencies.
 
 ## Decision framing
 
@@ -42,7 +41,11 @@ As a first step we framed the decision of implementing school meal policy. We de
 ![Full conceptual Model](figures/Framework.png)
 **Figure 1.** Conceptual model of school nutrition policy impacts. The diagram illustrates key variables influencing student health and learning outcomes in the context of school meal interventions. Variables are color-coded by type: management actions (blue) represent components that can be directly modified by policy (e.g. canteen change, nutrition lessons); costs (brown) reflect resource needs for implementation; risks (pink) represent contextual or behavioral barriers such as off-campus consumption or food culture and advertising; and benefits (green) are the desired outcomes, including on-campus consumption, student health, and student learning. Arrows indicate hypothesized causal relationships, with thicker arrows denoting stronger influence.
 
-## Literature and policy review
+## Literature review
+
+We apply algorithmic support in R for comparing our conceptual model to the existing literature corpus, government policy documents and a qualitative assessment. We apply these findings to systematically evaluate whether each component of our conceptual model is supported, refuted, missing from the literature and/or policy documents. We then synthesize this into a justified and adjusted version of the model.
+
+We build a semi-automated evidence synthesis framework that treats our documents like a team of virtual reviewers. The core idea is to define the core elements from our simple conceptual model (e.g. canteen regulation, staff training, food safety, nutrition education, etc.), search and summarize what each document says about each element, score the strength and direction of evidence per element, compare and synthesize to get a high-level view of agreement, gaps, and inconsistencies.
 
 We performed a review of policy and literature documents and saved the text of the reviews together with the bib files of both the literature and policy review.
 
@@ -441,7 +444,7 @@ In the literature we found supporting evidence for the variables we expressed in
 We took all these findings into account and also talked to experts to update the model. 
 
 ![Full conceptual Model](figures/Nutrition model.png)
-We ran the full model using Monte Carlo simulation to estimate the likely outcomes of different school nutrition policy configurations. All uncertain inputs were defined using probability distributions (e.g. truncated normal, beta, or uniform). Policy toggles, such as staff training and canteen monitoring, were included as binary variables with a 50% probability to simulate diverse configurations. This allowed exploration of combined and independent effects of policy elements.
+We ran the full model using Monte Carlo simulation to estimate the likely outcomes of different school nutrition policy configurations. All uncertain inputs were defined using probability distributions (e.g. truncated normal, normal, or uniform). Policy toggles, such as staff training and canteen monitoring, were included as binary variables with a 50% probability (10 to 90% chance of occurrence) to simulate diverse configurations. This allowed exploration of combined and independent effects of policy elements.
 
 ## Key Input Assumptions
 
@@ -473,7 +476,7 @@ We used a Monte Carlo simulation to estimate the economic and health outcomes of
 
 ## Comparative outcome distributions
 
-Before examining the Pareto front, we compare the distributions of the three discounted outcome variables directly. The Decision NPV integrates both health savings and education gains net of costs, while Net Health Benefit and Education Benefit represent the component contributions before cost deduction.
+We compare the distributions of the three discounted outcome variables directly. The Decision NPV integrates both health savings and education gains net of costs, while Net Health Benefit and Education Benefit represent the component contributions before estimating costs.
 
 ```{r npv_comparative_distributions, warning=FALSE, echo=FALSE}
 
@@ -491,7 +494,7 @@ ggsave("figures/npv_comparative_distributions.png", npv_comparative_distribution
 
 ## Distribution of NPV components by intervention
 
-Each row is one intervention (active runs only). The three columns show the distribution of the **overall net** NPV, the **health** component, and the **education** component across all Monte Carlo runs. Box spans the interquartile range; whiskers extend to 5th and 95th percentiles.
+Each row is one intervention (active runs only). The three columns show the distribution of the **overall net** NPV, the **health** component, and the **education** component across all Monte Carlo runs. 
 
 ```{r npv_components_by_intervention, warning=FALSE, echo=FALSE, fig.height=18, fig.width=11}
 library(cowplot)
@@ -584,13 +587,15 @@ ggsave("figures/npv_components_by_intervention.png", npv_components_by_intervent
 
 ```
 
-Overall our simulations show that implementation of the policy will have a positive effect on health and education. Which interpretations and practical interventions based on the policy will be most effective can be found in the simulations. Next we look for formulations of school meal interventions that show the greatest influence on overall, health and education outcomes. Our model includes toggle variables to simulate the presence or absence of specific interventions. We can identify which combinations of actions appear in the most efficient scenarios.
+Overall our simulations show that implementation of the policy will have a positive effect on health and education. 
 
 # Comparing five actions
 
+Next we look for formulations of school meal interventions that show the greatest influence on overall, health and education outcomes. Our model includes toggle variables to simulate the presence or absence of specific interventions. We can identify which combinations of actions appear in the most efficient scenarios.
+
 ## Mean decision value by action
 
-As a first step, we compare the mean net present value (NPV) of the policy decision across simulations where each intervention was present (toggle = 1) versus absent (toggle = 0). This provides a direct, interpretable summary of the average outcome difference associated with each action in isolation.
+We compare the mean net present value (NPV) of the policy decision across simulations where each intervention was present (toggle = 1) versus absent (toggle = 0). 
 
 ```{r toggle_mean_table, echo=FALSE}
 toggle_vars <- c(
@@ -657,7 +662,7 @@ sum(EVPI$education_benefit$EVPI_do, na.rm = T)
 For **net health benefits**, the EVPI is
 `r round(sum(EVPI$net_health_benefit$EVPI_do, na.rm = TRUE), 3)`; for **education benefits**, the EVPI is
 `r round(sum(EVPI$education_benefit$EVPI_do, na.rm = TRUE), 4)`; for the **composite decision value** (NPV), the EVPI is
-`r round(sum(EVPI$decision_value$EVPI_do, na.rm = TRUE), 2)` million VND. A small residual uncertainty in the economic return in a minority of simulations produce
+`r round(sum(EVPI$decision_value$EVPI_do, na.rm = TRUE), 2)` million VND. A small residual uncertainty in the return in a minority of simulations produce
 outcomes close to break-even, and perfect information about those parameters could
 marginally improve the decision. Nevertheless, the magnitude is low relative to the
 median NPV, and the decision to implement remains robust. Together, these results
