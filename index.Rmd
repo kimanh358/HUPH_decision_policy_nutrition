@@ -7,6 +7,7 @@ output:
 bibliography:
   - bib/school_meal_literature.bib
   - bib/school_meal_policy.bib
+  - bib/model_packages.bib
 ---
 
 ```{r setup, include=FALSE}
@@ -19,6 +20,18 @@ library(decisionSupport)
 library(dplyr)
 library(tidyr)
 library(ggplot2)
+
+knitr::write_bib(c(.packages(),
+                   "bibtex",
+                   "cowplot",
+                   "decisionSupport",
+                   "dplyr",
+                   "ggplot2",
+                   "knitr",
+                   "scales",
+                   "stringr",
+                   "tidyr"), file = "bib/model_packages.bib")
+
 ```
 
 # Decision Context and Conceptual Framework
@@ -44,7 +57,7 @@ As a first step we framed the decision of implementing school meal policy. We de
 
 ## Literature and policy review
 
-We apply algorithmic support in R for comparing our conceptual model to the existing literature corpus, government policy documents and a qualitative assessment. We apply these findings to systematically evaluate whether each component of our conceptual model is supported, refuted, missing from the literature and/or policy documents. We then synthesize this into a justified and adjusted version of the model (see [Literature and Policy Review for Nutrition interventions in Hanoi Schools]( https://htmlpreview.github.io/?https://github.com/kimanh358/HUPH_decision_policy_nutrition/blob/main/lit_review.html)).
+We apply algorithmic support in R for comparing our conceptual model to the existing literature corpus, government policy documents and a qualitative assessment, using the `stringr` [@R-stringr] and `bibtex` [@R-bibtex] packages for text processing and bibliography parsing. We apply these findings to systematically evaluate whether each component of our conceptual model is supported, refuted, missing from the literature and/or policy documents. We then synthesize this into a justified and adjusted version of the model (see [Literature and Policy Review for Nutrition interventions in Hanoi Schools]( https://htmlpreview.github.io/?https://github.com/kimanh358/HUPH_decision_policy_nutrition/blob/main/lit_review.html)).
 
 # Model update and Monte Carlo Simulation
 
@@ -75,7 +88,7 @@ simulation_result <- mcSimulation(
 
 ```
 
-We used a Monte Carlo simulation to estimate the educational and health outcomes of school meal policy interventions. We ran the model 10,000 times to capture uncertainty across a wide range of possible scenarios. 
+We used a Monte Carlo simulation [@R-decisionSupport] to estimate the educational and health outcomes of school meal policy interventions. We ran the model 10,000 times to capture uncertainty across a wide range of possible scenarios. 
 
 ## Comparative outcome distributions
 
@@ -94,9 +107,70 @@ ggsave("figures/npv_comparative_distributions.png", npv_comparative_distribution
 
 ```
 
+## Cashflow over the policy horizon
+
+The plots below show how each outcome component accumulates year by year across all 10,000 simulations. The shaded band spans the 5th–95th percentile; the solid line is the median. Because `cashflow_policy` is the incremental cashflow (policy minus do-nothing), its median discounts to `decision_value`. `cashflow_health` and `cashflow_education` are the two additive benefit components before subtracting implementation costs.
+
+```{r cashflow_plots, warning=FALSE, echo=FALSE, fig.height=9, fig.width=10}
+library(cowplot)
+
+cf_policy <- decisionSupport::plot_cashflow(
+  mcSimulation_object = simulation_result,
+  cashflow_var_name    = "cashflow_policy",
+  x_axis_name         = "Year",
+  y_axis_name         = "Million VND",
+  color_25_75         = "steelblue",
+  color_5_95          = "lightsteelblue",
+  base_size           = 10
+) +
+  ggplot2::labs(title = "Incremental decision cashflow (policy minus do-nothing)") +
+  ggplot2::geom_hline(yintercept = 0, linetype = "dashed", colour = "grey50")
+
+cf_health <- decisionSupport::plot_cashflow(
+  mcSimulation_object = simulation_result,
+  cashflow_var_name    = "cashflow_health",
+  x_axis_name         = "Year",
+  y_axis_name         = "Million VND",
+  color_25_75         = "palegreen3",
+  color_5_95          = "palegreen",
+  base_size           = 10
+) +
+  ggplot2::labs(title = "Net health benefit") +
+  ggplot2::geom_hline(yintercept = 0, linetype = "dashed", colour = "grey50")
+
+cf_education <- decisionSupport::plot_cashflow(
+  mcSimulation_object = simulation_result,
+  cashflow_var_name    = "cashflow_education",
+  x_axis_name         = "Year",
+  y_axis_name         = "Million VND",
+  color_25_75         = "salmon",
+  color_5_95          = "mistyrose",
+  base_size           = 10
+) +
+  ggplot2::labs(title = "Education benefit") +
+  ggplot2::geom_hline(yintercept = 0, linetype = "dashed", colour = "grey50")
+
+cashflow_composite <- cowplot::plot_grid(
+  cf_policy,
+  cf_health,
+  cf_education,
+  ncol        = 1,
+  align       = "v",
+  axis        = "lr",
+  rel_heights = c(1, 1, 1)
+)
+
+cashflow_composite
+
+ggsave("figures/cashflow_composite.png", cashflow_composite, width = 10, height = 9)
+
+```
+
+**Figure 3.** Year-by-year cashflows over the 5-year policy horizon. Each panel shows 10,000 simulation trajectories; shaded bands span the 5th–95th (outer) and 25th–75th (inner) percentile range; the solid line is the median. **Top:** incremental decision cashflow — the net gain of acting versus doing nothing, inclusive of all implementation costs. **Middle:** net health benefit (reduced diagnosis and treatment costs plus absenteeism savings). **Bottom:** education benefit (incremental learning value attributable to the intervention). The health and education panels sum to the gross policy benefit; subtracting implementation costs gives the top panel. Plots produced with `ggplot2` [@R-ggplot2] and composited with `cowplot` [@R-cowplot].
+
 ## Distribution of NPV components by intervention
 
-Each row is one intervention (active runs only). The three columns show the distribution of the **overall net** NPV, the **health** component, and the **education** component across all Monte Carlo runs. 
+Each row is one intervention (active runs only). The three columns show the distribution of the **overall net** NPV, the **health** component, and the **education** component across all Monte Carlo runs. Visualised with `ggplot2` [@R-ggplot2] and arranged with `cowplot` [@R-cowplot]. 
 
 ```{r npv_components_by_intervention, warning=FALSE, echo=FALSE, fig.height=18, fig.width=11}
 library(cowplot)
@@ -127,9 +201,10 @@ col_titles <- cowplot::plot_grid(
   ncol = 3
 )
 
-make_box <- function(values, dark_col, light_col, y_label = "Million VND") {
+make_box <- function(values, dark_col, light_col, y_label = "Million VND",
+                     ylim = NULL, show_y = TRUE) {
   df <- data.frame(x = " ", y = values)
-  ggplot2::ggplot(df, ggplot2::aes(x = x, y = y)) +
+  p <- ggplot2::ggplot(df, ggplot2::aes(x = x, y = y)) +
     ggplot2::geom_boxplot(
       fill = light_col, colour = dark_col, linewidth = 0.6,
       outlier.shape = NA,
@@ -153,11 +228,29 @@ make_box <- function(values, dark_col, light_col, y_label = "Million VND") {
       colour = dark_col, linewidth = 0.5, linetype = "dashed"
     ) +
     ggplot2::geom_hline(yintercept = 0, linetype = "dashed", colour = "grey50") +
-    ggplot2::labs(x = NULL, y = y_label) +
+    ggplot2::labs(x = NULL, y = if (show_y) y_label else NULL) +
     ggplot2::theme_minimal(base_size = 9) +
     ggplot2::theme(axis.text.x = ggplot2::element_blank(),
                    axis.ticks.x = ggplot2::element_blank())
+  if (!is.null(ylim))
+    p <- p + ggplot2::coord_cartesian(ylim = ylim)
+  if (!show_y)
+    p <- p + ggplot2::theme(axis.text.y  = ggplot2::element_blank(),
+                             axis.ticks.y = ggplot2::element_blank())
+  p
 }
+
+# Compute shared y-limits per column across all five interventions
+col_data <- lapply(toggle_vars, function(v) {
+  on <- simulation_result$x[[v]] >= 0.5
+  sy <- simulation_result$y[on, , drop = FALSE]
+  list(decision   = sy$decision_value,
+       health     = sy$net_health_benefit,
+       education  = sy$education_benefit)
+})
+ylim_decision  <- range(unlist(lapply(col_data, `[[`, "decision")),  na.rm = TRUE)
+ylim_health    <- range(unlist(lapply(col_data, `[[`, "health")),    na.rm = TRUE)
+ylim_education <- range(unlist(lapply(col_data, `[[`, "education")), na.rm = TRUE)
 
 row_plots <- lapply(seq_along(toggle_vars), function(i) {
   v   <- toggle_vars[i]
@@ -168,9 +261,12 @@ row_plots <- lapply(seq_along(toggle_vars), function(i) {
     cowplot::draw_label(toggle_labels[i], angle = 90, fontface = "bold", size = 10)
 
   content <- cowplot::plot_grid(
-    make_box(sy$decision_value,    colours_dark[i], colours_light[i]),
-    make_box(sy$net_health_benefit, colours_dark[i], colours_light[i]),
-    make_box(sy$education_benefit, colours_dark[i], colours_light[i]),
+    make_box(sy$decision_value,     colours_dark[i], colours_light[i],
+             ylim = ylim_decision,  show_y = TRUE),
+    make_box(sy$net_health_benefit, colours_dark[i], colours_light[i],
+             ylim = ylim_health,    show_y = FALSE),
+    make_box(sy$education_benefit,  colours_dark[i], colours_light[i],
+             ylim = ylim_education, show_y = FALSE),
     ncol = 3, align = "h"
   )
 
@@ -272,7 +368,7 @@ and the current evidence base is sufficient to proceed with the intervention.
 
 # School-level expert health effect assessment
 
-During expert elicitation, staff at each of the three study schools provided their own estimates of school context variables — including student numbers, training costs, food environment conditions, BMI prevalence, and barriers to implementation. These school-specific estimates capture meaningful local differences in the starting conditions and cost structure faced by each school.
+During expert elicitation, staff at each of the three study schools provided their own estimates, including student numbers, training costs, food environment conditions, BMI prevalence, and barriers to implementation. 
 
 To keep the health effect estimates internally consistent and comparable across schools, we retain the general pooled health parameters from `input_school_policy_post.csv` (disease diagnosis and treatment rates, cost per event, sick-day parameters). The school-specific contextual and cost variables are overlaid on top of this base, so each school's simulation reflects its own food environment and operational costs while sharing a common health parameter set.
 
@@ -426,7 +522,7 @@ ggsave("figures/school_expert_figure_health.png", school_expert_figure_health, w
 
 ```
 
-Health benefit distributions for each of the three schools. Boxes span the IQR; dashed whiskers mark the 5th and 95th percentiles.
+Health benefit distributions for each of the three schools. Boxes span the IQR; dashed whiskers mark the 5th and 95th percentiles. Data reshaped with `tidyr` [@R-tidyr]; axis labels formatted with `scales` [@R-scales].
 
 ```{r school_expert_figure_education, warning=FALSE, echo=FALSE, fig.height=14, fig.width=12}
 
@@ -503,7 +599,7 @@ Education benefit distributions for each of the three schools. Boxes span the IQ
 
 # Pareto analysis
 
-Toggle comparisons cannot capture how actions interact when implemented together. In this model, benefits compound through intermediate variables, so the effective return of any action depends in part on which other actions are also active. A scenario with all five toggles on is not simply the sum of five individual differences. We use the Pareto analysis as a multi-objective approach to identify *combinations* that yield the most efficient outcomes. It can also indicate where trade-offs arise between NPV, health, and education benefits. The Pareto front includes simulations that are not outperformed in all objectives by any other scenario. These are the most efficient configurations—improvements in one outcome would require trade-offs in others. We ran Pareto analysis across three dimensions: The economic return in the form of a discounted Net Present Value (NPV), health benefits and education benefits.
+Toggle comparisons cannot capture how actions interact when implemented together. In this model, benefits compound through intermediate variables, so the effective return of any action depends in part on which other actions are also active. A scenario with all five toggles on is not simply the sum of five individual differences. We use the Pareto analysis as a multi-objective approach to identify *combinations* that yield the most efficient outcomes. Data manipulation for the Pareto filter used `dplyr` [@R-dplyr]; results are summarised in tables formatted with `knitr` [@R-knitr]. It can also indicate where trade-offs arise between NPV, health, and education benefits. The Pareto front includes simulations that are not outperformed in all objectives by any other scenario. These are the most efficient configurations—improvements in one outcome would require trade-offs in others. We ran Pareto analysis across three dimensions: The economic return in the form of a discounted Net Present Value (NPV), health benefits and education benefits.
 
 The resulting Pareto front reveals a clear trade-off curve. Policy configurations that maximize economic return do not necessarily maximize health benefits or minimize per-student costs. Conversely, policies with strong health outcomes can come at higher per-student costs or lower net present values.
 
@@ -693,5 +789,5 @@ Pareto-optimal simulations were characterized by higher health and educational r
 
 Our analysis provides insight into how specific school nutrition policy components influence multiple objectives under uncertainty. The approach demonstrates how evidence-based modeling can inform practical decision-making, supporting the design of more effective and efficient interventions.
 
-# References
+## References
 

@@ -129,22 +129,20 @@ school_policy_function <- function(
  # This is the key mechanism that makes the with/without policy comparison
  # meaningful in the presence of the off-campus food environment.
  #
- # Gate food harm index: expected fraction of students experiencing
- # nutritional harm from off-campus vendors (prevalence × risk × impact).
- #  unhealthy_school_gate_foods  = prevalence of exposure
- #  unhealthy_schoolgate_food_risk  = P(harm | exposure)
- #  impact_risk_unhealthy_schoolgate_food = damage fraction if harm occurs
- gate_food_harm <- unhealthy_school_gate_foods*
- unhealthy_schoolgate_food_risk*
- impact_risk_unhealthy_schoolgate_food
+ # `unhealthy_school_gate_foods` is a single composite score (0–1) that
+ # captures the combined effect of vendor prevalence, the probability that
+ # exposure leads to a nutritional harm event, and the magnitude of that harm.
+ # It is estimated directly from school-level field data and does not require
+ # separate risk and impact parameters.
 
  # Baseline disease burden (no-policy arm): gate food adds illness even
  # without any school intervention — used in the do-nothing counterfactual.
- baseline_disease_diagnosis <- baseline_disease_diagnosis* (1 + gate_food_harm)
- baseline_disease_treatment <- baseline_disease_treatment * (1 + gate_food_harm)
+ baseline_disease_diagnosis <- baseline_disease_diagnosis* (1 + unhealthy_school_gate_foods)
+ baseline_disease_treatment <- baseline_disease_treatment * (1 + unhealthy_school_gate_foods)
 
  # Gate food attenuation from the three competitive interventions.
- # Each active intervention reduces the effective harm by its own effect size.
+ # Each active intervention reduces the effective harm 
+ # of school gate food by its own effect size.
  # Summed and clamped to [0, 1]; zero when no relevant action is taken.
  gate_attenuation <- 0
  if (staff_training_nutrition)
@@ -156,21 +154,22 @@ school_policy_function <- function(
  gate_attenuation <- min(1, gate_attenuation)
 
  # Effective gate food harm under the policy scenario.
- # No actions active → gate_food_harm_policy = gate_food_harm (full erosion)
- # All three active  → gate_food_harm_policy approaches 0  (minimal erosion)
- gate_food_harm_policy <- gate_food_harm* (1 - gate_attenuation)
+ # No actions active → unhealthy_school_gate_foods_policy = unhealthy_school_gate_foods (full erosion)
+ # All three active  → unhealthy_school_gate_foods_policy approaches 0  (minimal erosion)
+ unhealthy_school_gate_foods_policy <- unhealthy_school_gate_foods* (1 - gate_attenuation)
 
  # Policy gains are scaled down by the residual (policy-scenario) harm.
  # Contrast with the baseline above, which uses the full harm: this asymmetry
  # is what produces the NPV difference between acting and not acting.
- gate_food_offset <- 1 - gate_food_harm_policy
+ gate_food_offset <- 1 - unhealthy_school_gate_foods_policy
  n_reduce_disease_diagnosis <- n_reduce_disease_diagnosis* gate_food_offset
  n_reduce_disease_treatment <- n_reduce_disease_treatment* gate_food_offset
  n_sick_days_avoided_per_student <- n_sick_days_avoided_per_student* gate_food_offset
 
  # Composite unhealthy food exposure: mean across on-campus (canteen) and
- # off-campus (gate vendors, advertising) sources. Gate food prevalence
- # enters here as the exposure score — kept separate from the harm index above.
+ # off-campus (gate vendors, advertising) sources. Uses the unattenuated
+ # unhealthy_school_gate_foods score so that exposure to gate food remains
+ # elevated even when policy reduces its disease impact via gate_attenuation.
  unhealthy_food_exposure <- mean(c(unhealthy_canteen_foods, unhealthy_school_gate_foods, advertisement_exposure))
  
  # Policy impacts (attenuated by barriers)
@@ -286,9 +285,16 @@ school_policy_function <- function(
  no_policy_result <- annual_no_policy_benefit - annual_no_policy_health_cost
  
  # Cashflows
- cashflow_policy <- policy_benefit - total_policy_outflow
- cashflow_health <- vv(net_health_benefit, var_CV = CV_value, n = number_of_years)
- cashflow_education <- vv(education_benefit, var_CV = CV_value, n = number_of_years)
+ # cashflow_policy is the incremental decision cashflow:
+ #   (policy arm net of costs) minus (no-policy counterfactual)
+ # discount(cashflow_policy) = decision_value, and it decomposes as:
+ #   cashflow_education + cashflow_health - policy_cost_series
+ # cashflow_education and cashflow_health are the incremental benefit components.
+ # absenteeism is included in cashflow_health (via net_health_benefit) and
+ # excluded from cashflow_education so there is no double-counting.
+ cashflow_policy    <- (policy_benefit - total_policy_outflow) - no_policy_result
+ cashflow_health    <- vv(net_health_benefit, var_CV = CV_value, n = number_of_years)
+ cashflow_education <- vv(education_benefit,  var_CV = CV_value, n = number_of_years)
  
  # Net Present Values
  npv_policy <- discount(policy_benefit - total_policy_outflow, discount_rate, TRUE)
