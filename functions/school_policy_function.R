@@ -92,18 +92,87 @@ school_policy_function <- function(
     children_access_healthy_food <- children_access_healthy_food * (1 + limit_unhealthy_canteen_food_nutrition_effect)
   }
   
-  # Composite unhealthy food exposure: mean across sources so reducing canteen food
-  # actually lowers exposure even when school gate foods remain high.
-  # School gate food is uncontrollable background risk — no policy switch affects it.
-  unhealthy_food_exposure <- mean(c(unhealthy_canteen_foods, unhealthy_school_gate_foods, advertisement_exposure))
+  # ---------------------------------------------------------------------------
+  # Off-campus food environment: competition with school food
+  # ---------------------------------------------------------------------------
+  # Cheap, energy-dense junk food sold by street vendors at school gates
+  # competes directly with the school meal programme. None of the five
+  # interventions controls the vendors themselves, so gate food is a
+  # background risk that cannot be eliminated by school actors alone.
+  #
+  # However, three of the five interventions make the school food environment
+  # more competitive, reducing how much gate food displaces healthy eating:
+  #
+  #   Nutrition training    → children learn to value nutritious food;
+  #                           staff reinforce healthy choices at mealtimes,
+  #                           making gate junk food a less attractive option.
+  #   Menu change to RDA    → school meals become nutritionally complete
+  #                           and more filling, reducing the appetite for
+  #                           gate top-ups after lunch.
+  #   Limit unhealthy       → removes the easy on-campus junk-food option,
+  #   canteen food            so gate vendors become conspicuously "the
+  #                           unhealthy alternative" rather than a canteen
+  #                           substitute; also reinforces healthy eating norms.
+  #
+  # Food safety training and physical activity influence the general health
+  # and behavioural environment but do not directly affect the school-vs-gate
+  # food competition, so they do not contribute to the attenuation below.
+  #
+  # WITHOUT the five actions (do-nothing):
+  #   gate food harm operates at full strength — no school food is attractive
+  #   enough to displace vendor purchases, and health gains are maximally eroded.
+  #
+  # WITH actions active:
+  #   gate food harm is attenuated in proportion to the combined effect of the
+  #   competitive interventions, so more of the policy gains survive.
+  #
+  # This is the key mechanism that makes the with/without policy comparison
+  # meaningful in the presence of the off-campus food environment.
+  # ---------------------------------------------------------------------------
 
-  # Gate food attenuates how much the policy can achieve: children who access cheap
-  # unhealthy food at the gate partially offset canteen improvements.
-  # A higher school gate food score reduces achievable disease reductions.
-  gate_food_offset <- 1 - unhealthy_school_gate_foods
-  n_reduce_disease_diagnosis <- n_reduce_disease_diagnosis * gate_food_offset
-  n_reduce_disease_treatment <- n_reduce_disease_treatment * gate_food_offset
+  # Gate food harm index: expected fraction of students experiencing
+  # nutritional harm from off-campus vendors (prevalence × risk × impact).
+  #   unhealthy_school_gate_foods           = prevalence of exposure
+  #   unhealthy_schoolgate_food_risk        = P(harm | exposure)
+  #   impact_risk_unhealthy_schoolgate_food = damage fraction if harm occurs
+  gate_food_harm <- unhealthy_school_gate_foods *
+    unhealthy_schoolgate_food_risk *
+    impact_risk_unhealthy_schoolgate_food
+
+  # Baseline disease burden (no-policy arm): gate food adds illness even
+  # without any school intervention — used in the do-nothing counterfactual.
+  baseline_disease_diagnosis <- baseline_disease_diagnosis * (1 + gate_food_harm)
+  baseline_disease_treatment  <- baseline_disease_treatment  * (1 + gate_food_harm)
+
+  # Gate food attenuation from the three competitive interventions.
+  # Each active intervention reduces the effective harm by its own effect size.
+  # Summed and clamped to [0, 1]; zero when no relevant action is taken.
+  gate_attenuation <- 0
+  if (staff_training_nutrition)
+    gate_attenuation <- gate_attenuation + staff_training_nutrition_effect
+  if (use_menu_change_rda)
+    gate_attenuation <- gate_attenuation + menu_change_rda_nutrition_effect
+  if (use_limit_unhealthy_canteen_food)
+    gate_attenuation <- gate_attenuation + limit_unhealthy_canteen_food_nutrition_effect
+  gate_attenuation <- min(1, gate_attenuation)
+
+  # Effective gate food harm under the policy scenario.
+  # No actions active  → gate_food_harm_policy = gate_food_harm  (full erosion)
+  # All three active   → gate_food_harm_policy approaches 0        (minimal erosion)
+  gate_food_harm_policy <- gate_food_harm * (1 - gate_attenuation)
+
+  # Policy gains are scaled down by the residual (policy-scenario) harm.
+  # Contrast with the baseline above, which uses the full harm: this asymmetry
+  # is what produces the NPV difference between acting and not acting.
+  gate_food_offset <- 1 - gate_food_harm_policy
+  n_reduce_disease_diagnosis      <- n_reduce_disease_diagnosis      * gate_food_offset
+  n_reduce_disease_treatment      <- n_reduce_disease_treatment      * gate_food_offset
   n_sick_days_avoided_per_student <- n_sick_days_avoided_per_student * gate_food_offset
+
+  # Composite unhealthy food exposure: mean across on-campus (canteen) and
+  # off-campus (gate vendors, advertising) sources.  Gate food prevalence
+  # enters here as the exposure score — kept separate from the harm index above.
+  unhealthy_food_exposure <- mean(c(unhealthy_canteen_foods, unhealthy_school_gate_foods, advertisement_exposure))
   
   # Policy impacts (attenuated by barriers)
   food_access_score <- children_access_healthy_food * (1 - unhealthy_food_exposure) * (1 - resistance_child_preferences_attitude)
