@@ -524,6 +524,61 @@ ggsave("figures/school_expert_figure_health.png", school_expert_figure_health, w
 
 Health benefit distributions for each of the three schools. Boxes span the IQR; dashed whiskers mark the 5th and 95th percentiles. Data reshaped with `tidyr` [@R-tidyr]; axis labels formatted with `scales` [@R-scales].
 
+```{r school_benefit_table, echo=FALSE}
+
+# Helper: compute mean and 90% CI for a numeric vector
+summary_row <- function(school, benefit, values) {
+  data.frame(
+    School  = school,
+    Benefit = benefit,
+    Mean    = mean(values, na.rm = TRUE),
+    Lower   = quantile(values, 0.05, na.rm = TRUE),
+    Upper   = quantile(values, 0.95, na.rm = TRUE),
+    stringsAsFactors = FALSE
+  )
+}
+
+school_table_rows <- do.call(rbind, lapply(names(school_sims), function(sname) {
+  y <- school_sims[[sname]]$y
+  rbind(
+    summary_row(sname, "Overall",   y$decision_value),
+    summary_row(sname, "Health",    y$net_health_benefit),
+    summary_row(sname, "Education", y$education_benefit)
+  )
+}))
+
+# Combined row: pool all simulations across schools
+all_y <- do.call(rbind, lapply(school_sims, `[[`, "y"))
+combined_rows <- rbind(
+  summary_row("Combined", "Overall",   all_y$decision_value),
+  summary_row("Combined", "Health",    all_y$net_health_benefit),
+  summary_row("Combined", "Education", all_y$education_benefit)
+)
+
+school_table_all <- rbind(school_table_rows, combined_rows)
+
+# Format numbers with comma separator
+fmt <- function(x) formatC(round(x, 1), format = "f", digits = 1, big.mark = ",")
+
+school_table_display <- data.frame(
+  School  = school_table_all$School,
+  Benefit = school_table_all$Benefit,
+  `Mean (M VND)`  = fmt(school_table_all$Mean),
+  `Lower 5%`      = fmt(school_table_all$Lower),
+  `Upper 95%`     = fmt(school_table_all$Upper),
+  check.names = FALSE,
+  stringsAsFactors = FALSE
+)
+
+knitr::kable(school_table_display,
+             col.names = c("School", "Benefit",
+                           "Mean (million VND)",
+                           "Lower (5th percentile)",
+                           "Upper (95th percentile)"),
+             align = c("l", "l", "r", "r", "r"),
+             caption = "Mean and 90% confidence interval of outcome distributions by school (million VND, 5,000 Monte Carlo runs per school). 'Combined' pools all school simulations.")
+```
+
 ```{r school_expert_figure_education, warning=FALSE, echo=FALSE, fig.height=14, fig.width=12}
 
 school_colors_vec <- c(
